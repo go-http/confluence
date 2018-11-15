@@ -143,3 +143,24 @@ func (cli *Client) ContentCreateInSpace(contentType, space, parentId, title, dat
 
 	return info, nil
 }
+
+func (cli *Client) ContentUpdate(content Content) error {
+	resp, err := cli.PUT("/content/"+content.Id, content)
+	if err != nil {
+		return fmt.Errorf("执行请求失败: %s", err)
+	}
+
+	defer resp.Body.Close()
+
+	var info ErrorResp
+	err = json.NewDecoder(resp.Body).Decode(&info)
+	if err != nil {
+		return fmt.Errorf("解析响应失败: %s", err)
+	}
+
+	if info.StatusCode != 0 {
+		return fmt.Errorf("[%d]%s", info.StatusCode, info.Message)
+	}
+
+	return nil
+}
