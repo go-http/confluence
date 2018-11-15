@@ -16,17 +16,13 @@ type ContentBody struct {
 }
 
 type Content struct {
-	Id    string      `json:"id,omitempty"`
-	Type  string      `json:"type,omitempty"`
-	Title string      `json:"title,omitempty"`
-	Space Space       `json:"space,omitempty"`
-	Body  ContentBody `json:"body,omitempty"`
-
-	Version struct {
-		Number int `json:"number,omitempty"`
-	} `json:"version,omitempty"`
-
-	Ancestors []Content `json:"ancestors,omitempty"`
+	Id        string      `json:"id,omitempty"`
+	Type      string      `json:"type,omitempty"`
+	Title     string      `json:"title,omitempty"`
+	Space     Space       `json:"space,omitempty"`
+	Body      ContentBody `json:"body,omitempty"`
+	Version   Version     `json:"version,omitempty"`
+	Ancestors []Content   `json:"ancestors,omitempty"`
 }
 
 // 通过ID获取内容
