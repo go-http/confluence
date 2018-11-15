@@ -48,6 +48,9 @@ type PageResp struct {
 func (cli *Client) GET(path string, query url.Values) (*http.Response, error) {
 	return cli.Request("GET", path, query, nil)
 }
+func (cli *Client) POST(path string, data interface{}) (*http.Response, error) {
+	return cli.Request("POST", path, nil, data)
+}
 func (cli *Client) PUT(path string, data interface{}) (*http.Response, error) {
 	return cli.Request("PUT", path, nil, data)
 }
