@@ -1,11 +1,11 @@
 package confluence
 
 type Version struct {
-	By        User
-	When      string
-	Message   string
-	Number    int
-	MinorEdit bool
-	Hidden    bool
-	Links     LinkResp `josn:"_links"`
+	By        *User    `json:"by,omitempty"`
+	When      string   `json:"when,omitempty"`
+	Message   string   `json:"message,omitempty"`
+	Number    int      `json:"number,omitempty"`
+	MinorEdit bool     `json:"minorEdit,omitempty"`
+	Hidden    bool     `json:"hidden,omitempty"`
+	Links     LinkResp `json:"_links"`
 }
