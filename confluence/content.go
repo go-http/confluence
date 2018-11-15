@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 type ContentBody struct {
@@ -103,4 +104,42 @@ func (cli *Client) ContentBySpaceAndTitle(space, title string) (Content, error) 
 	default:
 		return Content{}, fmt.Errorf("找到%d条记录", info.Size)
 	}
+}
+
+func (cli *Client) PageCreateInSpace(space, parentId, title, data string) (Content, error) {
+	return cli.ContentCreateInSpace("page", space, parentId, title, data)
+}
+
+func (cli *Client) ContentCreateInSpace(contentType, space, parentId, title, data string) (Content, error) {
+	content := Content{Type: contentType, Title: title}
+	content.Space.Key = space
+	content.Body.Storage.Value = data
+	content.Body.Storage.Representation = "storage"
+
+	//FIXME: 这里指定了创建信息，但是好像没什么用
+	content.Version.Message = time.Now().Local().Format("机器人创建于2006-01-02 15:04:05")
+
+	//设置父页面
+	if parentId != "" {
+		content.Ancestors = []Content{Content{Id: parentId}}
+	}
+
+	resp, err := cli.POST("/content", content)
+	if err != nil {
+		return Content{}, fmt.Errorf("执行请求失败: %s", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return Content{}, fmt.Errorf("[%d]%s", resp.StatusCode, resp.Status)
+	}
+
+	var info Content
+	err = json.NewDecoder(resp.Body).Decode(&info)
+	if err != nil {
+		return Content{}, fmt.Errorf("解析响应失败: %s", err)
+	}
+
+	return info, nil
 }
