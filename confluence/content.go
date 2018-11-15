@@ -36,6 +36,15 @@ func (cli *Client) ContentById(id string) (Content, error) {
 
 // 通过ID获取内容（可以设置获取选项）
 func (cli *Client) ContentByIdWithOpt(id string, opt url.Values) (Content, error) {
+	if opt == nil {
+		opt = url.Values{}
+	}
+
+	// 缺省情况下，需要展开version，以便于后期编辑
+	if opt.Get("expand") == "" {
+		opt.Set("expand", "version")
+	}
+
 	resp, err := cli.GET("/content/"+id, opt)
 	if err != nil {
 		return Content{}, fmt.Errorf("执行请求失败: %s", err)
