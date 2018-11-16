@@ -11,6 +11,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/russross/blackfriday"
 )
 
 type RepresentationValue struct {
@@ -169,6 +171,23 @@ func getDirContentData(dir string) ([]byte, error) {
 	return DefaultDirContentData, nil
 }
 
+func getFileContentData(file, ext string) ([]byte, error) {
+	if ext == ".xml" {
+		return ioutil.ReadFile(file)
+	}
+
+	if ext == ".md" {
+		rawData, err := ioutil.ReadFile(file)
+		if err != nil {
+			return nil, fmt.Errorf("读取错误: %s", err)
+		}
+
+		return blackfriday.Run(rawData), nil
+	}
+
+	return nil, fmt.Errorf("不支持的文件格式: %s", ext)
+}
+
 func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 	_, err := os.Stat(fromPath)
 	if err != nil {
@@ -205,7 +224,7 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 	for _, item := range files {
 		log.Printf("文件: %+v", item)
 
-		buff, err := ioutil.ReadFile(item.Path)
+		buff, err := getFileContentData(item.Path, item.Ext)
 		if err != nil {
 			return fmt.Errorf("处理文件%s失败: %s", item.Path, err)
 		}
