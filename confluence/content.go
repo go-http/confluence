@@ -167,3 +167,30 @@ func (cli *Client) ContentUpdate(content Content) (Content, error) {
 
 	return info.Content, nil
 }
+
+//从指定空间查找或创建指定标题的Content
+func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, data string) (Content, error) {
+	content, err := cli.ContentBySpaceAndTitle(space, title)
+	if err != nil {
+		return Content{}, fmt.Errorf("查找%s出错: %s", title, err)
+	}
+
+	// 不存在则创建
+	if content.Id == "" {
+		return cli.PageCreateInSpace(space, parentId, title, data)
+	}
+
+	// 存在则否则更新
+	content.Space.Key = space
+	content.Version.Number += 1
+	content.Version.Message = time.Now().Local().Format("机器人更新于2006-01-02 15:04:05")
+	content.Body.Storage.Value = data
+	content.Body.Storage.Representation = "storage"
+
+	//设置父页面
+	if parentId != "" {
+		content.Ancestors = []Content{Content{Id: parentId}}
+	}
+
+	return cli.ContentUpdate(content)
+}
