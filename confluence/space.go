@@ -34,16 +34,16 @@ type SpaceMetadata struct {
 }
 
 type Space struct {
-	Id          int
-	Key         string
-	Name        string
-	Type        string
-	Icon        Icon
-	Description SpaceDescription
-	HomePage    *Content
-	Metadata    SpaceMetadata
-	Links       LinkResp           `json:"_links"`
-	Expandable  ExpandableResponse `json:"_expandable"`
+	Id          int                 `json:"id,omitempty"`
+	Key         string              `json:"key,omitempty"`
+	Name        string              `json:"name,omitempty"`
+	Type        string              `json:"type,omitempty"`
+	Icon        *Icon               `json:"icon,omitempty"`
+	Description *SpaceDescription   `json:"description,omitempty"`
+	HomePage    *Content            `json:"homePage,omitempty"`
+	Metadata    *SpaceMetadata      `json:"metadata,omitempty"`
+	Links       *LinkResp           `json:"_links,omitempty"`
+	Expandable  *ExpandableResponse `json:"_expandable,omitempty"`
 }
 
 func (cli *Client) SpaceByKey(key string) (Space, error) {
