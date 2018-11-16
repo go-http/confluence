@@ -1,6 +1,6 @@
-# Confluencer
+# Confluence
 
-[![GoDoc](https://godoc.org/github.com/athurg/confluencer?status.svg)](https://godoc.org/github.com/athurg/confluencer)
+[![GoDoc](https://godoc.org/github.com/athurg/go-confluence?status.svg)](https://godoc.org/github.com/athurg/go-confluence)
 
 Confluence API封装
 

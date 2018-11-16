@@ -1,4 +1,4 @@
-module confluencer
+module confluence
 
 require (
 	github.com/russross/blackfriday v2.0.0+incompatible
