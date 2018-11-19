@@ -82,11 +82,8 @@ func (cli *Client) ContentBySpaceAndTitle(space, title string) (Content, error) 
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return Content{}, fmt.Errorf("[%d]%s", resp.StatusCode, resp.Status)
-	}
-
 	var info struct {
+		ErrorResp
 		PageResp
 		Results []Content
 	}
@@ -94,6 +91,10 @@ func (cli *Client) ContentBySpaceAndTitle(space, title string) (Content, error) 
 	err = json.NewDecoder(resp.Body).Decode(&info)
 	if err != nil {
 		return Content{}, fmt.Errorf("解析响应失败: %s", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return Content{}, fmt.Errorf("[%d]%s", info.StatusCode, info.Message)
 	}
 
 	switch info.Size {
@@ -131,17 +132,21 @@ func (cli *Client) ContentCreateInSpace(contentType, space, parentId, title, dat
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return Content{}, fmt.Errorf("[%d]%s", resp.StatusCode, resp.Status)
+	var info struct{
+		ErrorResp
+		Content
 	}
-
-	var info Content
 	err = json.NewDecoder(resp.Body).Decode(&info)
 	if err != nil {
 		return Content{}, fmt.Errorf("解析响应失败: %s", err)
 	}
 
-	return info, nil
+	if resp.StatusCode != http.StatusOK {
+		return Content{}, fmt.Errorf("[%d]%s", resp.StatusCode, info.Message)
+	}
+
+
+	return info.Content, nil
 }
 
 func (cli *Client) ContentUpdate(content Content) (Content, error) {
@@ -162,6 +167,7 @@ func (cli *Client) ContentUpdate(content Content) (Content, error) {
 	}
 
 	if info.StatusCode != 0 {
+		fmt.Printf("%#v\n", info)
 		return Content{}, fmt.Errorf("[%d]%s", info.StatusCode, info.Message)
 	}
 
