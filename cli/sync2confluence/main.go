@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"confluence"
+	"github.com/athurg/go-confluence"
 )
 
 func main() {

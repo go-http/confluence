@@ -1,4 +1,4 @@
-module confluence
+module github.com/athurg/go-confluence
 
 require (
 	github.com/russross/blackfriday v2.0.0+incompatible
