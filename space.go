@@ -171,6 +171,13 @@ func getDirContentData(dir string) ([]byte, error) {
 	return DefaultDirContentData, nil
 }
 
+//Confluence的目录宏，用于自动添加到编译后的页面
+const ConfluenceToc = `
+<ac:structured-macro ac:name="toc">
+	<ac:parameter ac:name="outline">true</ac:parameter>
+</ac:structured-macro>
+`
+
 func getFileContentData(file, ext string) ([]byte, error) {
 	if ext == ".xml" {
 		return ioutil.ReadFile(file)
@@ -182,7 +189,9 @@ func getFileContentData(file, ext string) ([]byte, error) {
 			return nil, fmt.Errorf("读取错误: %s", err)
 		}
 
-		return blackfriday.Run(rawData), nil
+		mdData := blackfriday.Run(rawData)
+
+		return append([]byte(ConfluenceToc), mdData...), nil
 	}
 
 	return nil, fmt.Errorf("不支持的文件格式: %s", ext)
