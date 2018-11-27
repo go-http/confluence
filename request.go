@@ -106,7 +106,7 @@ func (cli *Client) Request(method, path string, query, header url.Values, body i
 	}
 
 	// 构造请求
-	req, err := http.NewRequest(method, cli.Address+path, body)
+	req, err := http.NewRequest(method, cli.APIPrefix()+path, body)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求失败: %s", err)
 	}

@@ -11,8 +11,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-
-	"gopkg.in/russross/blackfriday.v2"
 )
 
 type RepresentationValue struct {
@@ -153,11 +151,11 @@ func (cli *Client) SpaceContentExportToPath(key, outDir string) error {
 var supportedFileExts = []string{".md", ".xml"}
 var DefaultDirContentData = []byte(`<ac:structured-macro ac:name="children"><ac:parameter ac:name="all">true</ac:parameter></ac:structured-macro>`)
 
-func getDirContentData(dir string) ([]byte, error) {
+func getDirContentData(dir, imageSrcPrefix string) ([]byte, error) {
 	//检查是否有索引文件，如果有则用索引替换掉缺省的标准模板
 	for _, ext := range supportedFileExts {
 		indexFile := filepath.Join(dir, "index"+ext)
-		buff, err := getFileContentData(indexFile, ext)
+		buff, err := getFileContentData(indexFile, ext, imageSrcPrefix)
 		if err == nil {
 			return buff, nil
 		}
@@ -171,27 +169,13 @@ func getDirContentData(dir string) ([]byte, error) {
 	return DefaultDirContentData, nil
 }
 
-//Confluence的目录宏，用于自动添加到编译后的页面
-const ConfluenceToc = `
-<ac:structured-macro ac:name="toc">
-	<ac:parameter ac:name="outline">true</ac:parameter>
-</ac:structured-macro>
-`
-
-func getFileContentData(file, ext string) ([]byte, error) {
+func getFileContentData(file, ext, imageSrcPrefix string) ([]byte, error) {
 	if ext == ".xml" {
 		return ioutil.ReadFile(file)
 	}
 
 	if ext == ".md" {
-		rawData, err := ioutil.ReadFile(file)
-		if err != nil {
-			return nil, err
-		}
-
-		mdData := blackfriday.Run(rawData)
-
-		return append([]byte(ConfluenceToc), mdData...), nil
+		return parseMarkdownFile(file, imageSrcPrefix)
 	}
 
 	return nil, fmt.Errorf("不支持的文件格式: %s", ext)
@@ -214,13 +198,14 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 	//处理目录
 	for _, item := range dirs {
 		log.Printf("目录: %+v", item)
+		parentId := contentIds[item.ParentTitle]
 
-		data, err := getDirContentData(item.Path)
+		imageSrcPrefix := cli.AttachmentUrlPrefix(parentId)
+		data, err := getDirContentData(item.Path, imageSrcPrefix)
 		if err != nil {
 			return fmt.Errorf("处理目录%s失败: %s", item.Path, err)
 		}
 
-		parentId := contentIds[item.ParentTitle]
 		content, err := cli.PageFindOrCreateBySpaceAndTitle(space, parentId, item.Title, string(data))
 		if err != nil {
 			return fmt.Errorf("创建/更新%s错误: %s", item.Path, err)
@@ -238,13 +223,14 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 	//处理文件
 	for _, item := range files {
 		log.Printf("文件: %+v", item)
+		parentId := contentIds[item.ParentTitle]
 
-		buff, err := getFileContentData(item.Path, item.Ext)
+		imageSrcPrefix := cli.AttachmentUrlPrefix(parentId)
+		buff, err := getFileContentData(item.Path, item.Ext, imageSrcPrefix)
 		if err != nil {
 			return fmt.Errorf("处理文件%s失败: %s", item.Path, err)
 		}
 
-		parentId := contentIds[item.ParentTitle]
 		_, err = cli.PageFindOrCreateBySpaceAndTitle(space, parentId, item.Title, string(buff))
 		if err != nil {
 			return fmt.Errorf("创建/更新%s错误: %s", item.Path, err)
