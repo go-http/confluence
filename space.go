@@ -227,6 +227,12 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 		}
 
 		contentIds[item.Title] = content.Id
+
+		//处理目录下的附件
+		err = cli.AttachmentCreateFromDir(content.Id, item.Path)
+		if err != nil {
+			return fmt.Errorf("更新目录%s附件错误: %s", item.Path, err)
+		}
 	}
 
 	//处理文件
