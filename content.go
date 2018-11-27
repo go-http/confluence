@@ -132,7 +132,7 @@ func (cli *Client) ContentCreateInSpace(contentType, space, parentId, title, dat
 
 	defer resp.Body.Close()
 
-	var info struct{
+	var info struct {
 		ErrorResp
 		Content
 	}
@@ -144,7 +144,6 @@ func (cli *Client) ContentCreateInSpace(contentType, space, parentId, title, dat
 	if resp.StatusCode != http.StatusOK {
 		return Content{}, fmt.Errorf("[%d]%s", resp.StatusCode, info.Message)
 	}
-
 
 	return info.Content, nil
 }
