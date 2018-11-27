@@ -157,7 +157,7 @@ func getDirContentData(dir string) ([]byte, error) {
 	//检查是否有索引文件，如果有则用索引替换掉缺省的标准模板
 	for _, ext := range supportedFileExts {
 		indexFile := filepath.Join(dir, "index"+ext)
-		buff, err := ioutil.ReadFile(indexFile)
+		buff, err := getFileContentData(indexFile, ext)
 		if err == nil {
 			return buff, nil
 		}
@@ -186,7 +186,7 @@ func getFileContentData(file, ext string) ([]byte, error) {
 	if ext == ".md" {
 		rawData, err := ioutil.ReadFile(file)
 		if err != nil {
-			return nil, fmt.Errorf("读取错误: %s", err)
+			return nil, err
 		}
 
 		mdData := blackfriday.Run(rawData)
