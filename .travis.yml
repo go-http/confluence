@@ -1,0 +1,8 @@
+language: go
+go: "1.11"
+script: go install github.com/athurg/go-confluence/cli/sync2confluence
+deploy:
+  provider: releases
+  api_key: $GITHUB_OAUTH_TOKEN
+  file: "$GOPATH/bin/sync2confluence"
+  skip_cleanup: true
