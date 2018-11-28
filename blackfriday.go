@@ -1,7 +1,7 @@
 package confluence
 
 import (
-	"gopkg.in/russross/blackfriday.v2"
+	"github.com/russross/blackfriday/v2"
 	"io"
 	"io/ioutil"
 	"path"
