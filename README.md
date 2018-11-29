@@ -1,6 +1,7 @@
 # Confluence
 
 [![GoDoc](https://godoc.org/github.com/athurg/go-confluence?status.svg)](https://godoc.org/github.com/athurg/go-confluence)
+[![Build Status](https://travis-ci.com/athurg/go-confluence.svg?branch=master)](https://travis-ci.com/athurg/go-confluence)
 
 Confluence API封装
 
