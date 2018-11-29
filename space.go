@@ -185,7 +185,7 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 
 		content, err := cli.PageFindOrCreateBySpaceAndTitle(space, parentId, item.Title, string(data))
 		if err != nil {
-			return fmt.Errorf("创建/更新%s错误: %s", item.Path, err)
+			return fmt.Errorf("%s\n创建/更新%s错误: %s",  string(data), item.Path, err)
 		}
 
 		contentIds[item.Title] = content.Id
@@ -210,7 +210,7 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 
 		_, err = cli.PageFindOrCreateBySpaceAndTitle(space, parentId, item.Title, string(buff))
 		if err != nil {
-			return fmt.Errorf("创建/更新%s错误: %s", item.Path, err)
+			return fmt.Errorf("%s\n创建/更新%s错误: %s", string(buff), item.Path, err)
 		}
 	}
 
