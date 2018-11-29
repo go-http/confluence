@@ -9,17 +9,16 @@ import (
 
 type BlackFridayRenderer struct {
 	blackfriday.HTMLRenderer
-	ImageSrcPrefix string
 }
 
 func (r *BlackFridayRenderer) RenderNode(w io.Writer, node *blackfriday.Node, entering bool) blackfriday.WalkStatus {
-	//替换掉以./开头的本地图片的SRC地址
-	if r.ImageSrcPrefix != "" && node.Type == blackfriday.Image {
-		imageSrc := string(node.LinkData.Destination)
-		if path.Dir(imageSrc) == "." {
-			imageSrc = r.ImageSrcPrefix + path.Base(imageSrc)
-			node.LinkData.Destination = []byte(imageSrc)
+	//替换掉以./开头的相对路径为/开头，以适配目前blackfriday的用法
+	if len(node.LinkData.Destination) > 0 {
+		dest := string(node.LinkData.Destination)
+		if path.Dir(dest) == "." {
+			node.LinkData.Destination = []byte("/" + path.Base(dest))
 		}
+
 	}
 
 	return r.HTMLRenderer.RenderNode(w, node, entering)
@@ -32,15 +31,14 @@ const ConfluenceToc = `
 </ac:structured-macro>
 `
 
-func parseMarkdownFile(file, imageSrcPrefix string) ([]byte, error) {
+func parseMarkdownFile(file, absolutePrefix string) ([]byte, error) {
 	rawData, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
-	r := &BlackFridayRenderer{
-		ImageSrcPrefix: imageSrcPrefix,
-	}
+	r := &BlackFridayRenderer{}
+	r.AbsolutePrefix = absolutePrefix
 	mdData := blackfriday.Run(rawData, blackfriday.WithRenderer(r))
 
 	return append([]byte(ConfluenceToc), mdData...), nil
