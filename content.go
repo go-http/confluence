@@ -25,6 +25,7 @@ type Content struct {
 	Body      ContentBody `json:"body,omitempty"`
 	Version   Version     `json:"version,omitempty"`
 	Ancestors []Content   `json:"ancestors,omitempty"`
+	Link      LinkResp    `json:"_links"`
 }
 
 // 通过ID获取内容

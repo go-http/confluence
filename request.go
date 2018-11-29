@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"path/filepath"
 )
 
 // 错误数据的结构
@@ -32,11 +33,12 @@ type ExpandableResponse map[string]string
 
 // 链接的响应结构
 type LinkResp struct {
-	Base    string
-	Context string
-	Next    string
-	Self    string
-	WebUI   string
+	Base     string
+	Context  string
+	Next     string
+	Self     string
+	WebUI    string
+	Download string
 }
 
 // 分页的响应结构
@@ -48,7 +50,7 @@ type PageResp struct {
 }
 
 func (cli *Client) GET(path string, query url.Values) (*http.Response, error) {
-	return cli.Request("GET", path, query, nil, nil)
+	return cli.RequestAPI("GET", path, query, nil, nil)
 }
 
 func (cli *Client) POST(path string, data interface{}) (*http.Response, error) {
@@ -56,7 +58,7 @@ func (cli *Client) POST(path string, data interface{}) (*http.Response, error) {
 	if err != nil {
 		return nil, fmt.Errorf("编码请求数据失败: %s", err)
 	}
-	return cli.Request("POST", path, nil, nil, r)
+	return cli.RequestAPI("POST", path, nil, nil, r)
 }
 
 func (cli *Client) PUT(path string, data interface{}) (*http.Response, error) {
@@ -65,7 +67,7 @@ func (cli *Client) PUT(path string, data interface{}) (*http.Response, error) {
 		return nil, fmt.Errorf("编码请求数据失败: %s", err)
 	}
 
-	return cli.Request("PUT", path, nil, nil, r)
+	return cli.RequestAPI("PUT", path, nil, nil, r)
 }
 
 func (cli *Client) POSTFiles(path string, files []string) (*http.Response, error) {
@@ -95,7 +97,11 @@ func (cli *Client) POSTFiles(path string, files []string) (*http.Response, error
 		"Content-Type":      {w.FormDataContentType()},
 	}
 
-	return cli.Request("POST", path, nil, header, &body)
+	return cli.RequestAPI("POST", path, nil, header, &body)
+}
+
+func (cli *Client) RequestAPI(method, path string, query, header url.Values, body io.Reader) (*http.Response, error) {
+	return cli.Request(method, filepath.Join("/rest/api", path), query, header, body)
 }
 
 // 执行指定的HTTP请求，执行前会自动添加上认证信息和Content-Type信息
@@ -106,7 +112,7 @@ func (cli *Client) Request(method, path string, query, header url.Values, body i
 	}
 
 	// 构造请求
-	req, err := http.NewRequest(method, cli.APIPrefix()+path, body)
+	req, err := http.NewRequest(method, cli.Hostname+path, body)
 	if err != nil {
 		return nil, fmt.Errorf("创建请求失败: %s", err)
 	}

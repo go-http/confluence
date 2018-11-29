@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -41,6 +42,7 @@ func exportSpaceTo(addr, user, pass, space, outDir string) error {
 
 	total := len(pages)
 	for i, page := range pages {
+
 		//获取父页面信息
 		pageDirs := []string{outDir}
 		for _, ancestor := range page.Ancestors {
@@ -60,6 +62,26 @@ func exportSpaceTo(addr, user, pass, space, outDir string) error {
 
 		fileKBSize := float32(len(page.Body.Storage.Value)) / 100
 		log.Printf("[%3d/%3d] (%7.2f KiB) %s", i+1, total, fileKBSize, page.Title)
+
+		//下载附件
+		attachmentDir := path.Join(pageDir, page.Title)
+		os.MkdirAll(attachmentDir, 0755)
+		os.Rename(attachmentDir+".xml", path.Join(attachmentDir, "index.xml")) //将目录同名文件挪为index.xml
+
+		attachments, err := client.AttachmentByContentId(page.Id)
+		if err != nil {
+			return fmt.Errorf("获取%s附件列表错误: %s", page.Title, err)
+		}
+		for j, att := range attachments {
+			attachmentData, err := client.AttachmentDownload(att.Link.Download)
+			if err != nil {
+				return fmt.Errorf("下载%s附件%s错误: %s", page.Title, att.Title, err)
+			}
+
+			attachmentFile := path.Join(attachmentDir, att.Title)
+			ioutil.WriteFile(attachmentFile, attachmentData, 0755)
+			log.Printf("         附件%2d %s => %s", j+1, att.Title, attachmentFile)
+		}
 	}
 
 	return nil

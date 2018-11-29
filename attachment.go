@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"path"
 )
 
@@ -60,6 +61,18 @@ func (cli *Client) AttachmentCreateFromDir(contentId string, dir string) error {
 	}
 
 	return nil
+}
+
+//下载附件（地址从附件的download链接获取）
+func (cli *Client) AttachmentDownload(downloadUrl string) ([]byte, error) {
+	u, _ := url.Parse(downloadUrl)
+	resp, err := cli.Request("GET", u.Path, u.Query(), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
 }
 
 // 创建附件
