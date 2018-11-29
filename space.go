@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 )
@@ -68,84 +67,62 @@ func (cli *Client) SpaceByKey(key string) (Space, error) {
 
 	return info, nil
 }
-func (cli *Client) SpaceContentExportToPath(key, outDir string) error {
-	resp, err := cli.GET("/space/"+key+"/content", url.Values{"expand": {"body.storage,ancestors"}})
+
+func (cli *Client) GetSpacePagesStartFrom(key string, start int) ([]Content, int, error) {
+	query := url.Values{
+		"start":  {fmt.Sprintf("%d", start)},
+		"expand": {"body.storage,ancestors"},
+	}
+	resp, err := cli.GET("/space/"+key+"/content/page", query)
 	if err != nil {
-		return fmt.Errorf("执行请求失败: %s", err)
+		return nil, 0, fmt.Errorf("执行请求失败: %s", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("[%d]%s", resp.StatusCode, resp.Status)
+		return nil, 0, fmt.Errorf("[%d]%s", resp.StatusCode, resp.Status)
 	}
 
 	var info struct {
-		Page struct {
-			PageResp
-			LinkResp
-			Results []Content
-		}
-		BlogPost struct {
-			PageResp
-			LinkResp
-			Results []Content
-		}
-		LinkResp
+		PageResp
+		Results []Content
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&info)
 	if err != nil {
-		return fmt.Errorf("解析响应失败: %s", err)
+		return nil, 0, fmt.Errorf("解析响应失败: %s", err)
 	}
 
-	//清空原目录
-	os.RemoveAll(outDir)
+	//是否存在Next链接表示是否包含下一页
+	nextStart := 0
+	if info.Links.Next != "" {
+		nextStart = info.Start + info.Size
+	}
 
-	pageOutDir := path.Join(outDir, "page")
-	os.MkdirAll(pageOutDir, 0755)
-	for i, page := range info.Page.Results {
-		fmt.Printf("[%3d/%3d] %s(%d Bytes)", i+1, len(info.Page.Results), page.Title, len(page.Body.Storage.Value))
+	return info.Results, nextStart, nil
+}
 
-		//获取父页面信息
-		ancestorDirs := make([]string, len(page.Ancestors))
-		for i, ancestor := range page.Ancestors {
-			ancestorDirs[i] = ancestor.Title
+//获取指定空间的所有页面
+func (cli *Client) GetAllSpacePages(key string) ([]Content, error) {
+	var pages []Content
+
+	start := 0
+	for {
+		contents, nextStart, err := cli.GetSpacePagesStartFrom(key, start)
+		if err != nil {
+			return nil, err
 		}
 
-		pageDirs := append([]string{pageOutDir}, ancestorDirs...)
+		pages = append(pages, contents...)
 
-		pageDir := path.Join(pageDirs...)
-		os.MkdirAll(pageDir, 0755)
-
-		file := path.Join(pageDir, page.Title+".xml")
-
-		fmt.Println("       =>", file)
-		ioutil.WriteFile(file, []byte(page.Body.Storage.Value), 0755)
-	}
-
-	postOutDir := path.Join(outDir, "post")
-	os.MkdirAll(postOutDir, 0755)
-	for i, post := range info.BlogPost.Results {
-		fmt.Printf("[%3d/%3d] %s(%d Bytes)", i+1, len(info.BlogPost.Results), post.Title, len(post.Body.Storage.Value))
-
-		//获取父页面信息
-		ancestorDirs := make([]string, len(post.Ancestors))
-		for i, ancestor := range post.Ancestors {
-			ancestorDirs[i] = ancestor.Title
+		if nextStart <= 0 {
+			break
 		}
 
-		postDirs := append([]string{postOutDir}, ancestorDirs...)
-
-		postDir := path.Join(postDirs...)
-		os.MkdirAll(postDir, 0755)
-
-		file := path.Join(postDir, post.Title+".xml")
-
-		fmt.Println("       =>", file)
-		ioutil.WriteFile(file, []byte(post.Body.Storage.Value), 0755)
+		start = nextStart
 	}
 
-	return nil
+	return pages, nil
 }
 
 var supportedFileExts = []string{".md", ".xml"}
