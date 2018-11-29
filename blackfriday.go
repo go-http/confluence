@@ -38,6 +38,7 @@ func parseMarkdownFile(file, absolutePrefix string) ([]byte, error) {
 	}
 
 	r := &BlackFridayRenderer{}
+	r.Flags = blackfriday.UseXHTML
 	r.AbsolutePrefix = absolutePrefix
 	mdData := blackfriday.Run(rawData, blackfriday.WithRenderer(r))
 
