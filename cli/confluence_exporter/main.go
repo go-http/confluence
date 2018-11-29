@@ -61,7 +61,8 @@ func exportSpaceTo(addr, user, pass, space, outDir string) error {
 		ioutil.WriteFile(file, []byte(page.Body.Storage.Value), 0755)
 
 		fileKBSize := float32(len(page.Body.Storage.Value)) / 100
-		log.Printf("[%3d/%3d] (%7.2f KiB) %s", i+1, total, fileKBSize, page.Title)
+		log.Printf("[%3d/%3d] %s", i+1, total, page.Title)
+		log.Printf("          (%8.2f KiB) %s", fileKBSize, file)
 
 		//下载附件
 		attachmentDir := path.Join(pageDir, page.Title)
@@ -72,15 +73,16 @@ func exportSpaceTo(addr, user, pass, space, outDir string) error {
 		if err != nil {
 			return fmt.Errorf("获取%s附件列表错误: %s", page.Title, err)
 		}
-		for j, att := range attachments {
+		for _, att := range attachments {
 			attachmentData, err := client.AttachmentDownload(att.Link.Download)
 			if err != nil {
 				return fmt.Errorf("下载%s附件%s错误: %s", page.Title, att.Title, err)
 			}
 
+			attachmentKBSize := float32(len(attachmentData)) / 100
 			attachmentFile := path.Join(attachmentDir, att.Title)
 			ioutil.WriteFile(attachmentFile, attachmentData, 0755)
-			log.Printf("         附件%2d %s => %s", j+1, att.Title, attachmentFile)
+			log.Printf("          (%8.2f KiB) %s", attachmentKBSize, attachmentFile)
 		}
 	}
 
