@@ -173,8 +173,9 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 	contentIds := make(map[string]string)
 
 	//处理目录
-	for _, item := range dirs {
-		log.Printf("目录: %+v", item)
+	total := len(dirs)
+	for i, item := range dirs {
+		log.Printf("[%3d/%d]目录: %+v", i+1, total, item)
 		parentId := contentIds[item.ParentTitle]
 
 		absolutePrefix := cli.AttachmentUrlPrefix(parentId)
@@ -185,7 +186,7 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 
 		content, err := cli.PageFindOrCreateBySpaceAndTitle(space, parentId, item.Title, string(data))
 		if err != nil {
-			return fmt.Errorf("%s\n创建/更新%s错误: %s",  string(data), item.Path, err)
+			return fmt.Errorf("%s\n创建/更新%s错误: %s", string(data), item.Path, err)
 		}
 
 		contentIds[item.Title] = content.Id
@@ -198,8 +199,9 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 	}
 
 	//处理文件
-	for _, item := range files {
-		log.Printf("文件: %+v", item)
+	total = len(files)
+	for i, item := range files {
+		log.Printf("[%3d/%d]文件: %+v", i+1, total, item)
 		parentId := contentIds[item.ParentTitle]
 
 		absolutePrefix := cli.AttachmentUrlPrefix(parentId)
