@@ -22,7 +22,7 @@ Confluence中的所有内容，都是通过名为[空间](https://confluence.atl
 
 - **文件夹**：会生成一个同名的页面。
    - 如果文件夹内有名为`index`、后缀为`.md`或`.xml`的索引文件时，该文件的内容作为文件夹对应页面的内容。
-   - 当文件夹内没有索引文件时，会自动填充缺省内容。缺省内容是名为[Table of Contents](https://confluence.atlassian.com/conf68/table-of-contents-macro-947170714.html)的Confluence宏，该宏自动替换为该页面的子页面索引。
+   - 当文件夹内没有索引文件时，会自动填充缺省内容。缺省内容是名为[Children Display](https://confluence.atlassian.com/doc/children-display-macro-139501.html)的Confluence宏，该宏自动替换为该页面的子页面索引。
 
 
 - **普通文件**：按照其后缀名不同，有不同的处理方式：
