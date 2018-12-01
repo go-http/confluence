@@ -175,7 +175,7 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 	//处理目录
 	total := len(dirs)
 	for i, item := range dirs {
-		log.Printf("[%3d/%d]目录: %+v", i+1, total, item)
+		log.Printf("[%3d/%d]目录: %s", i+1, total, item.Path)
 		parentId := contentIds[item.ParentTitle]
 
 		absolutePrefix := cli.AttachmentUrlPrefix(parentId)
@@ -191,8 +191,13 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 
 		contentIds[item.Title] = content.Id
 
-		//处理目录下的附件
-		err = cli.AttachmentCreateFromDir(content.Id, item.Path)
+		//处理目录下的附件，优先使用其assets子目录，缺省则使用自身
+		attachmentDir := item.Path
+		assetsDir := filepath.Join(attachmentDir, "assets")
+		if fileInfo, err := os.Stat(assetsDir); !os.IsNotExist(err) && fileInfo.IsDir() {
+			attachmentDir = assetsDir
+		}
+		err = cli.AttachmentCreateFromDir(content.Id, attachmentDir)
 		if err != nil {
 			return fmt.Errorf("更新目录%s附件错误: %s", item.Path, err)
 		}
@@ -201,7 +206,7 @@ func (cli *Client) SpaceContentImportFrom(space, fromPath string) error {
 	//处理文件
 	total = len(files)
 	for i, item := range files {
-		log.Printf("[%3d/%d]文件: %+v", i+1, total, item)
+		log.Printf("[%3d/%d]文件: %s", i+1, total, item.Path)
 		parentId := contentIds[item.ParentTitle]
 
 		absolutePrefix := cli.AttachmentUrlPrefix(parentId)
@@ -255,6 +260,11 @@ func getContentInfoLists(rootPath string) ([]FileContentInfo, []FileContentInfo,
 
 		//目录直接处理
 		if info.IsDir() {
+			//assets目录跳过
+			if info.Name() == "assets" {
+				return filepath.SkipDir
+			}
+
 			dirs = append(dirs, contentInfo)
 
 			if _, found := titles[title]; !found {

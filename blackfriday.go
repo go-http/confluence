@@ -15,7 +15,8 @@ func (r *BlackFridayRenderer) RenderNode(w io.Writer, node *blackfriday.Node, en
 	//替换掉以./开头的相对路径为/开头，以适配目前blackfriday的用法
 	if len(node.LinkData.Destination) > 0 {
 		dest := string(node.LinkData.Destination)
-		if path.Dir(dest) == "." {
+		dir := path.Dir(dest)
+		if dir == "." || dir == "assets" {
 			node.LinkData.Destination = []byte("/" + path.Base(dest))
 		}
 
