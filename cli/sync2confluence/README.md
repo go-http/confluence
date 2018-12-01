@@ -16,36 +16,52 @@ Confluence中的所有内容，都是通过名为[空间](https://confluence.atl
 
 ## 文档内容生成规则
 
-首先，最重要的规则就是：所有以`.`开头的文件或者文件夹，以及符号链接、设备等非普通的文件，都会被忽略。
+首先，所有以`.`开头的文件或者文件夹、以及符号链接、设备等非普通的文件，都会被忽略。
 
 除此之外，其他的文件/文件夹，按照如下规则处理：
 
-- **文件夹**：会生成一个同名的页面。
-   - 如果文件夹内有名为`index`、后缀为`.md`或`.xml`的索引文件时，该文件的内容作为文件夹对应页面的内容。
-   - 当文件夹内没有索引文件时，会自动填充缺省内容。缺省内容是名为[Children Display](https://confluence.atlassian.com/doc/children-display-macro-139501.html)的Confluence宏，该宏自动替换为该页面的子页面索引。
+### 文件夹
+
+- 名为assets的文件夹及其所属的子文件夹，都不会生成任何页面。
+- 其他名称的文件夹会生成一个同名的页面。
+   - 如果文件夹内有名为`index`后缀为`.md`或`.xml`的索引文件时，索引文件内容会作为文件夹对应页面的内容。
+   - 当文件夹内没有索引文件时，会填充缺省的内容。缺省内容是名为[Children Display](https://confluence.atlassian.com/doc/children-display-macro-139501.html)的Confluence宏，该宏自动替换为该页面的子页面索引。
+
+### 普通文件
 
 
-- **普通文件**：按照其后缀名不同，有不同的处理方式：
-  - 以`.md`为后缀名的文件，会被当作Markdown内容解析。解析后的内容上传作为Confluence内容，内容的标题去掉后缀后的文件名部分。
+- **assets目录下的文件**：
+	会被视作附件，上传到**所在的assets目录的父目录**对应的页面中。
+- **其他目录下的文件**：
 
-  - 以`.xml`为后缀名的文件，会被当作原生的[Confluence Storage](https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html)上传为Confluence的内容。内容标题仍然是去掉后缀名后的文件名部分。
-
-  - 其他后缀名的文件，会被视作附件。会上传到其所在的目录对应的页面中，附件文件名/标题就是文件名。
+	- **以.md为后缀名**：会被当作Markdown内容解析。解析后的内容上传作为Confluence内容，内容的标题去掉后缀后的文件名部分。
+	- **以.xml为后缀名**：会被当作原生的[Confluence Storage](https://confluence.atlassian.com/doc/confluence-storage-format-790796544.html)上传为Confluence的内容。内容标题仍然是去掉后缀名后的文件名部分。
+	- **其他后缀名**：会被视作附件。会上传到其**所在的目录**对应的页面中，附件文件名/标题就是文件名。
 
 ## Markdown撰写指南
 
 ### 本地图片和附件链接
 
-如果需要插入图片或者附件链接，请将图片/附件文件与Markdown文件放在同一个目录中。并通过相对路径的方式来引用。例如：
+如果需要插入图片或者附件链接，建议将图片/附件文件放在Markdown文件同级目录的assets子目录中。并通过相对路径的方式来引用。例如，有如下目录结构：
 
-```markdown
-![图片](my_picture.jpg)
-![下载链接](my_attachment.zip)
+```bash
+tree ./
+ |- Hallo.md
+ `- assets/
+     |- my_picture.jpg
+     `- my_attachment.zip
 ```
 
-这种方式唯一的缺点就是需要保证图片/附件与文档同在一个目录下。但是好处就是方便，不需要引入什么图床之类的第三方服务。
+那么，在*Hallo.md*文件中，我们就可以像下面这样来创建图片和附件的链接：
 
-而且这种方式在主流的Markdown编辑器中，都能得到比较完美的支持的。使得我们在本地写作时的体验，和同步到Confluence后的体验保持一致。
+```markdown
+![图片](assets/my_picture.jpg)
+![下载链接](assets/my_attachment.zip)
+```
+
+当然，如果你喜欢，也可以把图片/附件放到Markdown相同的目录中。不过这种方式下可能管理起来不太方便。
+
+不管放在同级目录，还是assets子目录里，我们都可以自动替换掉对应的链接地址为Confluence的附件地址。使得转换到Confluence中的效果，和本地编辑器的效果一致。
 
 
 > ***提示***
