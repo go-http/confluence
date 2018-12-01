@@ -1,5 +1,6 @@
 package confluence
 
+//Confluence中的版本信息
 type Version struct {
 	By        *User    `json:"by,omitempty"`
 	When      string   `json:"when,omitempty"`
@@ -7,5 +8,5 @@ type Version struct {
 	Number    int      `json:"number,omitempty"`
 	MinorEdit bool     `json:"minorEdit,omitempty"`
 	Hidden    bool     `json:"hidden,omitempty"`
-	Links     LinkResp `json:"_links"`
+	Links     LinkResp `json:"_links,omitempty"`
 }

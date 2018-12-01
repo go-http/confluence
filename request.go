@@ -12,15 +12,6 @@ import (
 	"path/filepath"
 )
 
-// 错误数据的结构
-type ErrorData struct {
-	Authorized            bool
-	Valid                 bool
-	AllowedInReadOnlyMode bool
-	Successful            bool
-	Errors                []interface{}
-}
-
 // 错误信息的响应结构
 type ErrorResp struct {
 	StatusCode int
@@ -29,9 +20,19 @@ type ErrorResp struct {
 	Reason     string
 }
 
+// 错误响应中的错误数据
+type ErrorData struct {
+	Authorized            bool
+	Valid                 bool
+	AllowedInReadOnlyMode bool
+	Successful            bool
+	Errors                []interface{}
+}
+
+//可供展开的字段信息
 type ExpandableResponse map[string]string
 
-// 链接的响应结构
+// 响应信息中的链接信息
 type LinkResp struct {
 	Base     string
 	Context  string
@@ -41,36 +42,56 @@ type LinkResp struct {
 	Download string
 }
 
-// 分页的响应结构
+// 响应信息中的分页信息
 type PageResp struct {
 	Size  int
 	Start int
 	Limit int
-	Links LinkResp `json:"_links"`
+	Links LinkResp `json:"_links,omitempty"`
 }
 
-func (cli *Client) GET(path string, query url.Values) (*http.Response, error) {
-	return cli.RequestAPI("GET", path, query, nil, nil)
+//下载指定链接的内容
+func (cli *Client) Download(downloadUrl string) ([]byte, error) {
+	u, err := url.Parse(downloadUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := cli.Request("GET", u.Path, u.Query(), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
 }
 
-func (cli *Client) POST(path string, data interface{}) (*http.Response, error) {
+//发起GET类型的API请求
+func (cli *Client) ApiGET(path string, query url.Values) (*http.Response, error) {
+	return cli.ApiRequest("GET", path, query, nil, nil)
+}
+
+//发起POST类型的API请求
+func (cli *Client) ApiPOST(path string, data interface{}) (*http.Response, error) {
 	r, err := dataToJsonReader(data)
 	if err != nil {
 		return nil, fmt.Errorf("编码请求数据失败: %s", err)
 	}
-	return cli.RequestAPI("POST", path, nil, nil, r)
+	return cli.ApiRequest("POST", path, nil, nil, r)
 }
 
-func (cli *Client) PUT(path string, data interface{}) (*http.Response, error) {
+//发起PUT类型的API请求
+func (cli *Client) ApiPUT(path string, data interface{}) (*http.Response, error) {
 	r, err := dataToJsonReader(data)
 	if err != nil {
 		return nil, fmt.Errorf("编码请求数据失败: %s", err)
 	}
 
-	return cli.RequestAPI("PUT", path, nil, nil, r)
+	return cli.ApiRequest("PUT", path, nil, nil, r)
 }
 
-func (cli *Client) POSTFiles(path string, files []string) (*http.Response, error) {
+//发起POST类型的文件上传请求
+func (cli *Client) ApiPOSTFiles(path string, files []string) (*http.Response, error) {
 	var body bytes.Buffer
 
 	w := multipart.NewWriter(&body)
@@ -97,14 +118,15 @@ func (cli *Client) POSTFiles(path string, files []string) (*http.Response, error
 		"Content-Type":      {w.FormDataContentType()},
 	}
 
-	return cli.RequestAPI("POST", path, nil, header, &body)
+	return cli.ApiRequest("POST", path, nil, header, &body)
 }
 
-func (cli *Client) RequestAPI(method, path string, query, header url.Values, body io.Reader) (*http.Response, error) {
+//发起指定方法的API请求
+func (cli *Client) ApiRequest(method, path string, query, header url.Values, body io.Reader) (*http.Response, error) {
 	return cli.Request(method, filepath.Join("/rest/api", path), query, header, body)
 }
 
-// 执行指定的HTTP请求，执行前会自动添加上认证信息和Content-Type信息
+//执行指定的HTTP请求，执行前会自动添加上认证信息和Content-Type信息
 func (cli *Client) Request(method, path string, query, header url.Values, body io.Reader) (*http.Response, error) {
 	// 检查添加Query参数
 	if query != nil {
@@ -117,7 +139,10 @@ func (cli *Client) Request(method, path string, query, header url.Values, body i
 		return nil, fmt.Errorf("创建请求失败: %s", err)
 	}
 
-	req.SetBasicAuth(cli.Username, cli.Password)
+	if cli.Username != "" {
+		req.SetBasicAuth(cli.Username, cli.Password)
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 
 	for name, _ := range header {
@@ -127,7 +152,7 @@ func (cli *Client) Request(method, path string, query, header url.Values, body i
 	return http.DefaultClient.Do(req)
 }
 
-// 数据转换为JSON流reader
+//数据转换为JSON流reader
 func dataToJsonReader(data interface{}) (io.Reader, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {

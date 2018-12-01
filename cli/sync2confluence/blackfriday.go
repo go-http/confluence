@@ -1,4 +1,4 @@
-package confluence
+package main
 
 import (
 	"gopkg.in/russross/blackfriday.v2"

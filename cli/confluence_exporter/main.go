@@ -31,7 +31,7 @@ func main() {
 func exportSpaceTo(addr, user, pass, space, outDir string) error {
 	client := confluence.New(addr, user, pass)
 
-	pages, err := client.GetAllSpacePages(space)
+	pages, err := client.AllSpacePages(space)
 	if err != nil {
 		return err
 	}
@@ -69,12 +69,12 @@ func exportSpaceTo(addr, user, pass, space, outDir string) error {
 		os.MkdirAll(attachmentDir, 0755)
 		os.Rename(attachmentDir+".xml", path.Join(attachmentDir, "index.xml")) //将目录同名文件挪为index.xml
 
-		attachments, err := client.AttachmentByContentId(page.Id)
+		attachments, err := client.AttachmentsByContentId(page.Id)
 		if err != nil {
 			return fmt.Errorf("获取%s附件列表错误: %s", page.Title, err)
 		}
 		for _, att := range attachments {
-			attachmentData, err := client.AttachmentDownload(att.Link.Download)
+			attachmentData, err := client.Download(att.Link.Download)
 			if err != nil {
 				return fmt.Errorf("下载%s附件%s错误: %s", page.Title, att.Title, err)
 			}

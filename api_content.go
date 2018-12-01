@@ -8,23 +8,23 @@ import (
 	"time"
 )
 
-// 通过ID获取内容
+// 获取指定ID的内容
 func (cli *Client) ContentById(id string) (Content, error) {
 	return cli.ContentByIdWithOpt(id, nil)
 }
 
-// 通过ID获取内容（可以设置获取选项）
+// 获取指定ID的内容（可以设置获取选项）
 func (cli *Client) ContentByIdWithOpt(id string, opt url.Values) (Content, error) {
 	if opt == nil {
 		opt = url.Values{}
 	}
 
-	// 缺省情况下，需要展开version，以便于后期编辑
+	// 缺省展开version便于后期更新时递增版本号
 	if opt.Get("expand") == "" {
 		opt.Set("expand", "version")
 	}
 
-	resp, err := cli.GET("/content/"+id, opt)
+	resp, err := cli.ApiGET("/content/"+id, opt)
 	if err != nil {
 		return Content{}, fmt.Errorf("执行请求失败: %s", err)
 	}
@@ -49,6 +49,7 @@ func (cli *Client) ContentByIdWithOpt(id string, opt url.Values) (Content, error
 	return info.Content, nil
 }
 
+//获取指定空间、标题的内容
 func (cli *Client) ContentBySpaceAndTitle(space, title string) (Content, error) {
 	q := url.Values{
 		"title":    {title},
@@ -56,7 +57,7 @@ func (cli *Client) ContentBySpaceAndTitle(space, title string) (Content, error) 
 		"expand":   {"version"},
 	}
 
-	resp, err := cli.GET("/content", q)
+	resp, err := cli.ApiGET("/content", q)
 	if err != nil {
 		return Content{}, fmt.Errorf("执行请求失败: %s", err)
 	}
@@ -88,15 +89,16 @@ func (cli *Client) ContentBySpaceAndTitle(space, title string) (Content, error) 
 	}
 }
 
+//在指定空间创建页面
 func (cli *Client) PageCreateInSpace(space, parentId, title, data string) (Content, error) {
 	return cli.ContentCreateInSpace("page", space, parentId, title, data)
 }
 
+//在指定空间创建内容
 func (cli *Client) ContentCreateInSpace(contentType, space, parentId, title, data string) (Content, error) {
 	content := Content{Type: contentType, Title: title}
 	content.Space.Key = space
-	content.Body.Storage.Value = data
-	content.Body.Storage.Representation = "storage"
+	content.SetStorageBody(data)
 
 	//FIXME: 这里指定了创建信息，但是好像没什么用
 	content.Version.Message = time.Now().Local().Format("机器人创建于2006-01-02 15:04:05")
@@ -106,7 +108,7 @@ func (cli *Client) ContentCreateInSpace(contentType, space, parentId, title, dat
 		content.Ancestors = []Content{Content{Id: parentId}}
 	}
 
-	resp, err := cli.POST("/content", content)
+	resp, err := cli.ApiPOST("/content", content)
 	if err != nil {
 		return Content{}, fmt.Errorf("执行请求失败: %s", err)
 	}
@@ -129,8 +131,9 @@ func (cli *Client) ContentCreateInSpace(contentType, space, parentId, title, dat
 	return info.Content, nil
 }
 
+//更新指定的内容
 func (cli *Client) ContentUpdate(content Content) (Content, error) {
-	resp, err := cli.PUT("/content/"+content.Id, content)
+	resp, err := cli.ApiPUT("/content/"+content.Id, content)
 	if err != nil {
 		return Content{}, fmt.Errorf("执行请求失败: %s", err)
 	}
@@ -154,7 +157,7 @@ func (cli *Client) ContentUpdate(content Content) (Content, error) {
 	return info.Content, nil
 }
 
-//从指定空间查找或创建指定标题的Content
+//从指定空间查找或创建指定标题的内容
 func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, data string) (Content, error) {
 	content, err := cli.ContentBySpaceAndTitle(space, title)
 	if err != nil {
@@ -170,8 +173,7 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, data 
 	content.Space.Key = space
 	content.Version.Number += 1
 	content.Version.Message = time.Now().Local().Format("机器人更新于2006-01-02 15:04:05")
-	content.Body.Storage.Value = data
-	content.Body.Storage.Representation = "storage"
+	content.SetStorageBody(data)
 
 	//设置父页面
 	if parentId != "" {
