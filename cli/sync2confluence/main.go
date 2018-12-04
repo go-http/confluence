@@ -58,8 +58,7 @@ func ImportToSpace(addr, user, pass, space, from string) error {
 		log.Printf("[%3d/%d]目录: %s", i+1, total, item.Path)
 		parentId := contentIds[item.ParentTitle]
 
-		absolutePrefix := client.ContentAttachmentUrlPrefix(parentId)
-		data, err := getDirContentData(item.Path, absolutePrefix)
+		data, err := getDirContentData(item.Path)
 		if err != nil {
 			return fmt.Errorf("处理目录%s失败: %s", item.Path, err)
 		}
@@ -89,8 +88,7 @@ func ImportToSpace(addr, user, pass, space, from string) error {
 		log.Printf("[%3d/%d]文件: %s", i+1, total, item.Path)
 		parentId := contentIds[item.ParentTitle]
 
-		absolutePrefix := client.ContentAttachmentUrlPrefix(parentId)
-		buff, err := getFileContentData(item.Path, item.Ext, absolutePrefix)
+		buff, err := getFileContentData(item.Path, item.Ext)
 		if err != nil {
 			return fmt.Errorf("处理文件%s失败: %s", item.Path, err)
 		}
@@ -237,11 +235,11 @@ func GetFileContentInfo(path string) FileContentInfo {
 
 var DefaultDirContentData = []byte(`<ac:structured-macro ac:name="children"><ac:parameter ac:name="all">true</ac:parameter></ac:structured-macro>`)
 
-func getDirContentData(dir, absolutePrefix string) ([]byte, error) {
+func getDirContentData(dir string) ([]byte, error) {
 	//检查是否有索引文件，如果有则用索引替换掉缺省的标准模板
 	for _, ext := range ContentFileExts {
 		indexFile := filepath.Join(dir, "index"+ext)
-		buff, err := getFileContentData(indexFile, ext, absolutePrefix)
+		buff, err := getFileContentData(indexFile, ext)
 		if err == nil {
 			return buff, nil
 		}
@@ -255,13 +253,13 @@ func getDirContentData(dir, absolutePrefix string) ([]byte, error) {
 	return DefaultDirContentData, nil
 }
 
-func getFileContentData(file, ext, absolutePrefix string) ([]byte, error) {
+func getFileContentData(file, ext string) ([]byte, error) {
 	if ext == ".xml" {
 		return ioutil.ReadFile(file)
 	}
 
 	if ext == ".md" {
-		return parseMarkdownFile(file, absolutePrefix)
+		return parseMarkdownFile(file)
 	}
 
 	return nil, fmt.Errorf("不支持的文件格式: %s", ext)
