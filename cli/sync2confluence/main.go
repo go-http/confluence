@@ -13,6 +13,7 @@ import (
 )
 
 //作为Content解析的文件后缀名，当前支持Markdown文件和直接存储的XML文件
+var AssetsDirName = "assets"
 var ContentFileExts = []string{".md", ".xml"}
 
 func main() {
@@ -23,6 +24,7 @@ func main() {
 	flag.StringVar(&pass, "p", "", "密码")
 	flag.StringVar(&space, "s", "", "Confluence空间标识")
 	flag.StringVar(&dir, "d", "", "要导入的目录")
+	flag.StringVar(&AssetsDirName, "assets", "assets", "图片和附件专用的目录名")
 
 	flag.Parse()
 
@@ -136,7 +138,7 @@ func getContentInfoLists(rootPath string) ([]FileContentInfo, []FileContentInfo,
 		//目录直接处理
 		if info.IsDir() {
 			//assets目录跳过
-			if info.Name() == "assets" {
+			if info.Name() == AssetsDirName {
 				return filepath.SkipDir
 			}
 
@@ -264,7 +266,7 @@ func getFileContentData(file, ext, absolutePrefix string) ([]byte, error) {
 
 // 获取指定目录下的附件清单
 func getAttachmentFiles(dir string) ([]string, error) {
-	assetsDir := filepath.Join(dir, "assets")
+	assetsDir := filepath.Join(dir, AssetsDirName)
 	if fileInfo, err := os.Stat(assetsDir); !os.IsNotExist(err) && fileInfo.IsDir() {
 		dir = assetsDir
 	}
