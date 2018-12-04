@@ -1,7 +1,7 @@
 
 # Sync2Confluence
 
-`Sync2Confluence`是用于同步本地目录到Confluence空间的命令行工具。
+`Sync2Confluence`是用于同步本地Markdown目录到Confluence空间的命令行工具。
 
 ## 安装
 1. 安装`go get github.com/athurg/go-confluence/cli/sync2confluence`
@@ -43,6 +43,9 @@ Confluence中的所有内容，都是通过名为[空间](https://confluence.atl
 	- **其他后缀名**：会被视作附件。会上传到其**所在的目录**对应的页面中，附件文件名/标题就是文件名。
 
 ## Markdown撰写指南
+
+由于我们采用的是[blackfriday](https://github.com/russross/blackfriday)作为Markdown解析器。因此，推荐被解析的文本严格遵循[Markdown的标准规范](https://daringfireball.net/projects/markdown/)
+
 
 ### 本地图片和附件链接
 
