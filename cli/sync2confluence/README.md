@@ -8,6 +8,10 @@
 1. 执行`sync2confluence -addr WIKI地址 -s 空间标识 -u 用户名 -p 密码 -d 文档路径`
 1. 完整的参数信息可以执行`sync2confluence -h`查看
 
+## 选项
+- *-assets 名称*: 设置*assets目录*的文件夹名
+- *-hardLinkBreak*: 设置普通的换行是否意味着HTML的换行
+
 ## 目录树和Confluence空间的关系
 
 Confluence中的所有内容，都是通过名为[空间](https://confluence.atlassian.com/conf68/spaces-947170008.html)的机制组织的。
@@ -22,7 +26,7 @@ Confluence中的所有内容，都是通过名为[空间](https://confluence.atl
 
 ### 文件夹
 
-- 名为assets的文件夹及其所属的子文件夹，都不会生成任何页面。
+- *assets文件夹*及其所属的子文件夹，都不会生成任何页面。
 - 其他名称的文件夹会生成一个同名的页面。
    - 如果文件夹内有名为`index`后缀为`.md`或`.xml`的索引文件时，索引文件内容会作为文件夹对应页面的内容。
    - 当文件夹内没有索引文件时，会填充缺省的内容。缺省内容是名为[Children Display](https://confluence.atlassian.com/doc/children-display-macro-139501.html)的Confluence宏，该宏自动替换为该页面的子页面索引。
@@ -30,8 +34,8 @@ Confluence中的所有内容，都是通过名为[空间](https://confluence.atl
 ### 普通文件
 
 
-- **assets目录下的文件**：
-	会被视作附件，上传到**所在的assets目录的父目录**对应的页面中。
+- ***assets目录*下的文件**：
+	会被视作附件，上传到**其所在的*assets目录*的父目录**对应的页面中。
 - **其他目录下的文件**：
 
 	- **以.md为后缀名**：会被当作Markdown内容解析。解析后的内容上传作为Confluence内容，内容的标题去掉后缀后的文件名部分。
@@ -42,7 +46,7 @@ Confluence中的所有内容，都是通过名为[空间](https://confluence.atl
 
 ### 本地图片和附件链接
 
-如果需要插入图片或者附件链接，建议将图片/附件文件放在Markdown文件同级目录的assets子目录中。并通过相对路径的方式来引用。例如，有如下目录结构：
+如果需要插入图片或者附件链接，建议将图片/附件文件放在Markdown文件同级目录的*assets子目录*中。并通过相对路径的方式来引用。例如，有如下目录结构：
 
 ```bash
 tree ./
@@ -61,7 +65,7 @@ tree ./
 
 当然，如果你喜欢，也可以把图片/附件放到Markdown相同的目录中。不过这种方式下可能管理起来不太方便。
 
-不管放在同级目录，还是assets子目录里，我们都可以自动替换掉对应的链接地址为Confluence的附件地址。使得转换到Confluence中的效果，和本地编辑器的效果一致。
+不管放在同级目录，还是*assets子目录*里，我们都可以自动替换掉对应的链接地址为Confluence的附件地址。使得转换到Confluence中的效果，和本地编辑器的效果一致。
 
 
 > ***提示***
@@ -104,3 +108,4 @@ tree ./
 ```markdown
 [Chat](https://wiki.tap4fun.com/display/TGS/Chat)
 ```
+
