@@ -15,6 +15,7 @@ import (
 //作为Content解析的文件后缀名，当前支持Markdown文件和直接存储的XML文件
 var AssetsDirName = "assets"
 var ContentFileExts = []string{".md", ".xml"}
+var EnableHardLineBreak bool
 
 func main() {
 	var addr, user, pass, space, dir string
@@ -25,6 +26,8 @@ func main() {
 	flag.StringVar(&space, "s", "", "Confluence空间标识")
 	flag.StringVar(&dir, "d", "", "要导入的目录")
 	flag.StringVar(&AssetsDirName, "assets", "assets", "图片和附件专用的目录名")
+
+	flag.BoolVar(&EnableHardLineBreak, "hardLineBreak", false, "是否将换行符视为页面换行")
 
 	flag.Parse()
 

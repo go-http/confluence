@@ -40,8 +40,15 @@ func parseMarkdownFile(file, absolutePrefix string) ([]byte, error) {
 
 	r := &BlackFridayRenderer{}
 	r.Flags = blackfriday.UseXHTML
+
+	extensions := blackfriday.CommonExtensions
+	if EnableHardLineBreak {
+		extensions |= blackfriday.HardLineBreak
+	}
+
 	r.AbsolutePrefix = absolutePrefix
-	mdData := blackfriday.Run(rawData, blackfriday.WithRenderer(r))
+
+	mdData := blackfriday.Run(rawData, blackfriday.WithRenderer(r), blackfriday.WithExtensions(extensions))
 
 	return append([]byte(ConfluenceToc), mdData...), nil
 }
