@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"gopkg.in/russross/blackfriday.v2"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"path"
 )
 
@@ -13,13 +15,37 @@ type BlackFridayRenderer struct {
 
 //预处理附件图片
 func preRenderImage(w io.Writer, src string) bool {
-	dir := path.Dir(src)
-	if dir == "." || dir == AssetsDirName {
-		basename := path.Base(src)
-		result := `<ac:image><ri:attachment ri:filename="` + basename + `" /></ac:image>`
-		w.Write([]byte(result))
-		return true
+	u, err := url.Parse(src)
+	if err != nil {
+		return false
 	}
+
+	if u.Scheme != "" {
+		return false
+	}
+
+	dir := path.Dir(src)
+	if path.IsAbs(src) {
+		return false
+	}
+
+	filename := path.Base(src)
+
+	//如果附件位于assets目录，则提取其上级目录
+	if path.Base(dir) == AssetsDirName {
+		dir = path.Dir(dir)
+	}
+
+	result := fmt.Sprintf(`<ac:image><ri:attachment ri:filename="%s">`, filename)
+
+	if dir != "." {
+		result += fmt.Sprintf(`<ri:page ri:content-title="%s"/>`, path.Base(dir))
+	}
+
+	result += `</ri:attachment></ac:image>`
+
+	w.Write([]byte(result))
+
 	return true
 }
 
