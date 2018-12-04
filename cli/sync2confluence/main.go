@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/athurg/go-confluence"
 )
@@ -52,7 +53,7 @@ func ImportToSpace(addr, user, pass, space, from string) error {
 	//缓存已经创建的Content ID，以便其子Content查找父Content的ID
 	contentIds := make(map[string]string)
 
-	//处理目录
+	//处理目录，由于目录存在依赖关系，因此必需串行处理
 	total := len(dirs)
 	for i, item := range dirs {
 		log.Printf("[%3d/%d]目录: %s", i+1, total, item.Path)
@@ -82,21 +83,38 @@ func ImportToSpace(addr, user, pass, space, from string) error {
 		}
 	}
 
-	//处理文件
-	total = len(files)
-	for i, item := range files {
-		log.Printf("[%3d/%d]文件: %s", i+1, total, item.Path)
-		parentId := contentIds[item.ParentTitle]
+	//并发处理文件
+	var wg sync.WaitGroup
+	errs := make(chan error, len(files))
+	for _, item := range files {
+		wg.Add(1)
 
-		buff, err := getFileContentData(item.Path, item.Ext)
-		if err != nil {
-			return fmt.Errorf("处理文件%s失败: %s", item.Path, err)
-		}
+		go func(info FileContentInfo) {
+			defer wg.Done()
 
-		_, err = client.PageFindOrCreateBySpaceAndTitle(space, parentId, item.Title, string(buff))
-		if err != nil {
-			return fmt.Errorf("%s\n创建/更新%s错误: %s", string(buff), item.Path, err)
-		}
+			parentId := contentIds[info.ParentTitle]
+
+			buff, err := getFileContentData(info.Path, info.Ext)
+			if err != nil {
+				errs <- fmt.Errorf("\033[31m错误文件%s: %s\033[0m", info.Path, err)
+				return
+			}
+
+			_, err = client.PageFindOrCreateBySpaceAndTitle(space, parentId, info.Title, string(buff))
+			if err != nil {
+				errs <- fmt.Errorf("%s\n\033[31m错误文件%s错误: %s\033[0m", string(buff), info.Path, err)
+				return
+			}
+
+			log.Printf("完成文件: %s", info.Path)
+		}(item)
+	}
+
+	wg.Wait()
+
+	//输出所有的错误信息
+	for len(errs) > 0 {
+		log.Println("", <-errs, "\033[0m")
 	}
 
 	return nil
