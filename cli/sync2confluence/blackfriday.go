@@ -13,69 +13,72 @@ type BlackFridayRenderer struct {
 	blackfriday.HTMLRenderer
 }
 
-//预处理附件图片
-func preRenderImage(w io.Writer, src string) bool {
+func getAttachmentDir(src string) string {
 	u, err := url.Parse(src)
 	if err != nil {
-		return false
+		return ""
 	}
 
 	if u.Scheme != "" {
-		return false
+		return ""
 	}
 
 	dir := path.Dir(src)
 	if path.IsAbs(src) {
-		return false
+		return ""
 	}
-
-	filename := path.Base(src)
 
 	//如果附件位于assets目录，则提取其上级目录
 	if path.Base(dir) == AssetsDirName {
 		dir = path.Dir(dir)
 	}
 
-	result := fmt.Sprintf(`<ac:image><ri:attachment ri:filename="%s">`, filename)
-
-	if dir != "." {
-		result += fmt.Sprintf(`<ri:page ri:content-title="%s"/>`, path.Base(dir))
-	}
-
-	result += `</ri:attachment></ac:image>`
-
-	w.Write([]byte(result))
-
-	return true
-}
-
-//预处理附件
-func preRenderLink(w io.Writer, src, title string) bool {
-	dir := path.Dir(src)
-	if dir == "." || dir == AssetsDirName {
-		basename := path.Base(src)
-		result := `<ac:link><ri:attachment ri:filename="` + basename + `" /><ac:plain-text-link-body><![CDATA[` + title + `]]></ac:plain-text-link-body></ac:link>`
-		w.Write([]byte(result))
-		return true
-	}
-	return true
+	return dir
 }
 
 func (r *BlackFridayRenderer) RenderNode(w io.Writer, node *blackfriday.Node, entering bool) blackfriday.WalkStatus {
-	//预处理可能的附件图片
+	//如果是图片，需要检查是否符合图片附件的规则，如果符合，就用Confluence宏而不是HTML输出
 	if node.Type == blackfriday.Image {
-		if entering {
-			ok := preRenderImage(w, string(node.LinkData.Destination))
-			if ok {
-				return blackfriday.GoToNext
+		dest := string(node.LinkData.Destination)
+		dir := getAttachmentDir(dest)
+		//预处理图片附件链接
+		if dir != "" {
+			if entering {
+				filename := path.Base(dest)
+				result := fmt.Sprintf(`<ac:image><ri:attachment ri:filename="%s">`, filename)
+
+				if dir != "." {
+					result += fmt.Sprintf(`<ri:page ri:content-title="%s"/>`, path.Base(dir))
+				}
+
+				w.Write([]byte(result))
+
+			} else {
+				w.Write([]byte("</ri:attachment></ac:image>"))
 			}
+			return blackfriday.GoToNext
 		}
 	}
 
-	//预处理可能的附件
+	//如果是链接，需要检查是否符合附件的规则，如果符合，就用Confluence宏而不是HTML输出
 	if node.Type == blackfriday.Link {
-		ok := preRenderLink(w, string(node.LinkData.Destination), string(node.LinkData.Title))
-		if ok {
+		dest := string(node.LinkData.Destination)
+		dir := getAttachmentDir(dest)
+		//预处理附件链接
+		if dir != "" {
+			if entering {
+				filename := path.Base(dest)
+				result := fmt.Sprintf(`<ac:link><ri:attachment ri:filename="%s">`, filename)
+				if dir != "." {
+					result += fmt.Sprintf(`<ri:page ri:content-title="%s"/>`, path.Base(dir))
+				}
+
+				result += "</ri:attachment><ac:plain-text-link-body><![CDATA["
+				w.Write([]byte(result))
+			} else {
+				result := "]]></ac:plain-text-link-body></ac:link>"
+				w.Write([]byte(result))
+			}
 			return blackfriday.GoToNext
 		}
 	}
