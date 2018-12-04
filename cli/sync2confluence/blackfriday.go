@@ -16,7 +16,7 @@ func (r *BlackFridayRenderer) RenderNode(w io.Writer, node *blackfriday.Node, en
 	if len(node.LinkData.Destination) > 0 {
 		dest := string(node.LinkData.Destination)
 		dir := path.Dir(dest)
-		if dir == "." || dir == "assets" {
+		if dir == "." || dir == AssetsDirName {
 			node.LinkData.Destination = []byte("/" + path.Base(dest))
 		}
 
