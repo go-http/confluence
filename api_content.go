@@ -150,7 +150,6 @@ func (cli *Client) ContentUpdate(content Content) (Content, error) {
 	}
 
 	if info.StatusCode != 0 {
-		fmt.Printf("%#v\n", info)
 		return Content{}, fmt.Errorf("[%d]%s", info.StatusCode, info.Message)
 	}
 
