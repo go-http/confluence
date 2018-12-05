@@ -83,6 +83,19 @@ func (r *BlackFridayRenderer) RenderNode(w io.Writer, node *blackfriday.Node, en
 		}
 	}
 
+	//代码块使用Confluence官方的宏
+	//但mermaid代码块除外，因为他需要配合JS渲染成流程图，而不是语法高亮
+	if node.Type == blackfriday.CodeBlock && string(node.Info) != "mermaid" {
+		result := `<ac:structured-macro ac:name="code">`
+		result += `<ac:parameter ac:name="linenumbers">true</ac:parameter>`
+		result += `<ac:parameter ac:name="theme">RDark</ac:parameter>`
+		result += `<ac:parameter ac:name="language">` + string(node.Info) + `</ac:parameter>`
+		result += `<ac:plain-text-body><![CDATA[` + string(node.Literal) + `]]></ac:plain-text-body>`
+		result += `</ac:structured-macro>`
+		w.Write([]byte(result))
+		return blackfriday.GoToNext
+	}
+
 	return r.HTMLRenderer.RenderNode(w, node, entering)
 }
 
