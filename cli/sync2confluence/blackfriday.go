@@ -11,6 +11,8 @@ import (
 
 type BlackFridayRenderer struct {
 	blackfriday.HTMLRenderer
+	ParentTitle string
+	IsIndexFile bool
 }
 
 func getAttachmentDir(src string) string {
@@ -47,7 +49,15 @@ func (r *BlackFridayRenderer) RenderNode(w io.Writer, node *blackfriday.Node, en
 				filename := path.Base(dest)
 				result := fmt.Sprintf(`<ac:image><ri:attachment ri:filename="%s">`, filename)
 
-				if dir != "." {
+				//同目录下
+				if dir == "." {
+					//如果不是索引文件，则表示引用的是父页面，需要设置页面名
+					//如果是索引文件，则表示引用的是自身页面，不需设置页面名
+					if !r.IsIndexFile {
+						result += fmt.Sprintf(`<ri:page ri:content-title="%s"/>`, r.ParentTitle)
+					}
+				} else {
+					//不同目录下，则表示其他页面的引用，需要设置页面名
 					result += fmt.Sprintf(`<ri:page ri:content-title="%s"/>`, path.Base(dir))
 				}
 
@@ -69,7 +79,16 @@ func (r *BlackFridayRenderer) RenderNode(w io.Writer, node *blackfriday.Node, en
 			if entering {
 				filename := path.Base(dest)
 				result := fmt.Sprintf(`<ac:link><ri:attachment ri:filename="%s">`, filename)
-				if dir != "." {
+
+				//同目录下
+				if dir == "." {
+					//如果不是索引文件，则表示引用的是父页面，需要设置页面名
+					//如果是索引文件，则表示引用的是自身页面，不需设置页面名
+					if !r.IsIndexFile {
+						result += fmt.Sprintf(`<ri:page ri:content-title="%s"/>`, r.ParentTitle)
+					}
+				} else {
+					//不同目录下，则表示其他页面的引用，需要设置页面名
 					result += fmt.Sprintf(`<ri:page ri:content-title="%s"/>`, path.Base(dir))
 				}
 
@@ -118,14 +137,20 @@ const ConfluenceToc = `
 </ac:structured-macro>
 `
 
-func parseMarkdownFile(file string) ([]byte, error) {
+func parseMarkdownFile(file, parentTitle string) ([]byte, error) {
 	rawData, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
-	r := &BlackFridayRenderer{}
+	r := &BlackFridayRenderer{
+		ParentTitle: parentTitle,
+	}
 	r.Flags = blackfriday.UseXHTML
+
+	if path.Base(file) == "index.md" {
+		r.IsIndexFile = true
+	}
 
 	extensions := blackfriday.CommonExtensions
 	if EnableHardLineBreak {
