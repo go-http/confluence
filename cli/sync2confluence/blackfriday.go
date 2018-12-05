@@ -98,8 +98,8 @@ func (r *BlackFridayRenderer) RenderNode(w io.Writer, node *blackfriday.Node, en
 
 	if node.Type == blackfriday.BlockQuote {
 		if entering {
-			w.Write([]byte(`<ac:structured-macro ac:name="info">`))
-			w.Write([]byte(`<ac:parameter ac:name="title">注意</ac:parameter>`))
+			w.Write([]byte(`<ac:structured-macro ac:name="tip">`))
+			w.Write([]byte(`<ac:parameter ac:name="title">提示</ac:parameter>`))
 			w.Write([]byte(`<ac:rich-text-body>`))
 		} else {
 			w.Write([]byte(`</ac:rich-text-body>`))
