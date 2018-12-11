@@ -168,6 +168,11 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, data 
 		return cli.PageCreateInSpace(space, parentId, title, data)
 	}
 
+	//存在但内容未变化，直接跳过
+	if data != content.Body.Storage.Value {
+		return content, nil
+	}
+
 	// 存在则否则更新
 	content.Space.Key = space
 	content.Version.Number += 1
