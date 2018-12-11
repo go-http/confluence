@@ -140,7 +140,7 @@ func getContentInfoLists(rootPath string) ([]FileContentInfo, []FileContentInfo,
 			return nil
 		}
 
-		contentInfo := GetFileContentInfo(relPath)
+		contentInfo := GetFileContentInfo(relPath, info.IsDir())
 		contentInfo.Path = path
 
 		title := contentInfo.Title
@@ -233,11 +233,15 @@ type FileContentInfo struct {
 }
 
 // 获取指定文件的信息
-func GetFileContentInfo(path string) FileContentInfo {
-	filename := filepath.Base(path)
+func GetFileContentInfo(path string, isDir bool) FileContentInfo {
+	var ext string
+	title := filepath.Base(path)
 
-	ext := filepath.Ext(filename)
-	title := strings.TrimSuffix(filename, ext)
+	// 目录不需要分离后缀名，非目录则需要
+	if !isDir {
+		ext = filepath.Ext(title)
+		title = strings.TrimSuffix(title, ext)
+	}
 
 	parentTitle := filepath.Base(filepath.Dir(path))
 	if parentTitle == "." {
