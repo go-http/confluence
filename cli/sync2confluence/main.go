@@ -146,7 +146,7 @@ func getContentInfoLists(rootPath string) ([]FileContentInfo, []FileContentInfo,
 		title := contentInfo.Title
 
 		//以.开头的文件跳过、以.开头的目录及其子目录跳过
-		if title == "" && contentInfo.Ext != "" {
+		if title == "" || strings.HasPrefix(title, ".") {
 			if info.IsDir() {
 				return filepath.SkipDir
 			} else {
