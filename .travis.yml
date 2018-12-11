@@ -10,3 +10,5 @@ deploy:
   file:
     - "$GOPATH/bin/*"
   skip_cleanup: true
+  on:
+    tags: true
