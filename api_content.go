@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -54,7 +55,7 @@ func (cli *Client) ContentBySpaceAndTitle(space, title string) (Content, error) 
 	q := url.Values{
 		"title":    {title},
 		"spaceKey": {space},
-		"expand":   {"version"},
+		"expand":   {"version,body.storage"},
 	}
 
 	resp, err := cli.ApiGET("/content", q)
@@ -158,6 +159,10 @@ func (cli *Client) ContentUpdate(content Content) (Content, error) {
 
 //从指定空间查找或创建指定标题的内容
 func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, data string) (Content, error) {
+	//内容中的空行会被Confluence保存时自动去掉
+	//因此前先去掉，以避免对比内容变化时受到影响
+	data = strings.TrimSuffix(strings.TrimPrefix(data, "\n"), "\n")
+
 	content, err := cli.ContentBySpaceAndTitle(space, title)
 	if err != nil {
 		return Content{}, fmt.Errorf("查找%s出错: %s", title, err)
@@ -168,8 +173,18 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, data 
 		return cli.PageCreateInSpace(space, parentId, title, data)
 	}
 
-	//存在但内容未变化，直接跳过
-	if data != content.Body.Storage.Value {
+	//存在：对比内容是否有变化
+	newValue, err := cli.ContentBodyConvertTo(data, "storage", "view")
+	if err != nil {
+		return Content{}, fmt.Errorf("转换新内容失败: %s", err)
+	}
+
+	oldValue, err := cli.ContentBodyConvertTo(content.Body.Storage.Value, "storage", "view")
+	if err != nil {
+		return Content{}, fmt.Errorf("转换旧内容失败: %s", err)
+	}
+
+	if newValue == oldValue {
 		return content, nil
 	}
 
