@@ -1,5 +1,9 @@
 package confluence
 
+import(
+	"strings"
+)
+
 //Confluence客户端，封装了Confluence的常见资源操作
 type Client struct {
 	Hostname string
@@ -10,7 +14,7 @@ type Client struct {
 //创建新的Confluence客户端
 func New(addr, user, pass string) *Client {
 	return &Client{
-		Hostname: addr,
+		Hostname: strings.TrimSuffix(addr, "/"),
 		Username: user,
 		Password: pass,
 	}
