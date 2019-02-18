@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/russross/blackfriday.v2"
 	"io"
 	"io/ioutil"
 	"net/url"
 	"path"
+
+	"github.com/russross/blackfriday/v2"
 )
 
 type BlackFridayRenderer struct {
