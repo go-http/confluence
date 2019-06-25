@@ -55,7 +55,7 @@ func (cli *Client) ContentBySpaceAndTitle(space, title string) (Content, error) 
 	q := url.Values{
 		"title":    {title},
 		"spaceKey": {space},
-		"expand":   {"version,body.storage"},
+		"expand":   {"version,body.storage,ancestors"},
 	}
 
 	resp, err := cli.ApiGET("/content", q)
@@ -158,7 +158,7 @@ func (cli *Client) ContentUpdate(content Content) (Content, error) {
 }
 
 //从指定空间查找或创建指定标题的内容
-func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, data string) (Content, error) {
+func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiDirPrefix, data string) (Content, error) {
 	//内容中的空行会被Confluence保存时自动去掉
 	//因此前先去掉，以避免对比内容变化时受到影响
 	data = strings.TrimSuffix(strings.TrimPrefix(data, "\n"), "\n")
@@ -173,31 +173,44 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, data 
 		return cli.PageCreateInSpace(space, parentId, title, data)
 	}
 
-	//存在：对比内容是否有变化
-	newValue, err := cli.ContentBodyConvertTo(data, "storage", "view")
-	if err != nil {
-		return Content{}, fmt.Errorf("转换新内容失败: %s", err)
+	// 获取文件的路径
+	pagePath := ""
+	for i, ancestor := range content.Ancestors {
+		if i != 0 {
+			pagePath += "/" + ancestor.Title
+		}
 	}
 
-	oldValue, err := cli.ContentBodyConvertTo(content.Body.Storage.Value, "storage", "view")
-	if err != nil {
-		return Content{}, fmt.Errorf("转换旧内容失败: %s", err)
+	//存在，但不在指定的路径下，报错结束
+	if !strings.HasPrefix(pagePath, wikiDirPrefix) {
+		return Content{}, fmt.Errorf("一个标题为 '%v' 的页面已经存在于该空间中。为您的页面输入一个不同的标题。", title)
+	} else {
+		//存在：对比内容是否有变化
+		newValue, err := cli.ContentBodyConvertTo(data, "storage", "view")
+		if err != nil {
+			return Content{}, fmt.Errorf("转换新内容失败: %s", err)
+		}
+
+		oldValue, err := cli.ContentBodyConvertTo(content.Body.Storage.Value, "storage", "view")
+		if err != nil {
+			return Content{}, fmt.Errorf("转换旧内容失败: %s", err)
+		}
+
+		if newValue == oldValue {
+			return content, nil
+		}
+
+		// 存在则否则更新
+		content.Space.Key = space
+		content.Version.Number += 1
+		content.Version.Message = time.Now().Local().Format("机器人更新于2006-01-02 15:04:05")
+		content.SetStorageBody(data)
+
+		//设置父页面
+		if parentId != "" {
+			content.Ancestors = []Content{Content{Id: parentId}}
+		}
+
+		return cli.ContentUpdate(content)
 	}
-
-	if newValue == oldValue {
-		return content, nil
-	}
-
-	// 存在则否则更新
-	content.Space.Key = space
-	content.Version.Number += 1
-	content.Version.Message = time.Now().Local().Format("机器人更新于2006-01-02 15:04:05")
-	content.SetStorageBody(data)
-
-	//设置父页面
-	if parentId != "" {
-		content.Ancestors = []Content{Content{Id: parentId}}
-	}
-
-	return cli.ContentUpdate(content)
 }
