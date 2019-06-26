@@ -175,10 +175,12 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiD
 
 	// 获取文件的路径
 	pagePath := ""
+	lastAncestorId := ""
 	for i, ancestor := range content.Ancestors {
 		if i != 0 {
 			pagePath += "/" + ancestor.Title
 		}
+		lastAncestorId = ancestor.Id
 	}
 
 	//存在，但不在指定的路径下，报错结束
@@ -196,7 +198,7 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiD
 			return Content{}, fmt.Errorf("转换旧内容失败: %s", err)
 		}
 
-		if newValue == oldValue {
+		if newValue == oldValue && lastAncestorId == parentId {
 			return content, nil
 		}
 
