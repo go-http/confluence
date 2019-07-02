@@ -176,10 +176,8 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiD
 	// 获取文件的路径
 	pagePath := ""
 	lastAncestorId := ""
-	for i, ancestor := range content.Ancestors {
-		if i != 0 {
-			pagePath += "/" + ancestor.Title
-		}
+	for _, ancestor := range content.Ancestors {
+		pagePath += "/" + ancestor.Title
 		lastAncestorId = ancestor.Id
 	}
 
