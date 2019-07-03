@@ -180,6 +180,7 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiD
 		pagePath += "/" + ancestor.Title
 		lastAncestorId = ancestor.Id
 	}
+	pagePath += "/" + content.Title
 
 	//存在，但不在指定的路径下，报错结束
 	if !strings.HasPrefix(pagePath, wikiDirPrefix) {
