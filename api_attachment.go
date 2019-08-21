@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"path/filepath"
 )
 
@@ -107,7 +108,9 @@ func (cli *Client) AttachmentUpdate(contentId, attachmentId, file string) ([]Con
 
 // 获取指定页面的所有附件
 func (cli *Client) AttachmentsByContentId(contentId string) ([]Content, error) {
-	resp, err := cli.ApiGET("/content/"+contentId+"/child/attachment", nil)
+	query := url.Values{}
+	query.Add("limit", "1000")
+	resp, err := cli.ApiGET("/content/"+contentId+"/child/attachment", query)
 	if err != nil {
 		return nil, fmt.Errorf("执行请求失败: %s", err)
 	}
