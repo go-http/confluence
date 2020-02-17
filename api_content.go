@@ -158,7 +158,7 @@ func (cli *Client) ContentUpdate(content Content) (Content, error) {
 }
 
 //从指定空间查找或创建指定标题的内容
-func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiDirPrefix, data string) (Content, error) {
+func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiDirPrefix, data, extraInfo string) (Content, error) {
 	//内容中的空行会被Confluence保存时自动去掉
 	//因此前先去掉，以避免对比内容变化时受到影响
 	data = strings.TrimSuffix(strings.TrimPrefix(data, "\n"), "\n")
@@ -200,6 +200,9 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiD
 		if newValue == oldValue && lastAncestorId == parentId {
 			return content, nil
 		}
+
+		// 如果确定要更新confluence页面，那么这里添加一个备注宏
+		data += fmt.Sprintf(ConfluenceNoteMacro, extraInfo)
 
 		// 存在则否则更新
 		content.Space.Key = space
