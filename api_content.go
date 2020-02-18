@@ -163,6 +163,7 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiD
 	//因此前先去掉，以避免对比内容变化时受到影响
 	data = strings.TrimSuffix(strings.TrimPrefix(data, "\n"), "\n")
 
+	//获取当前页面的内容
 	content, err := cli.ContentBySpaceAndTitle(space, title)
 	if err != nil {
 		return Content{}, fmt.Errorf("查找%s出错: %s", title, err)
@@ -170,6 +171,7 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiD
 
 	// 不存在则创建
 	if content.Id == "" {
+		data += fmt.Sprintf(ConfluenceNoteMacro, extraInfo)
 		return cli.PageCreateInSpace(space, parentId, title, data)
 	}
 
@@ -192,6 +194,10 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiD
 			return Content{}, fmt.Errorf("转换新内容失败: %s", err)
 		}
 
+		// 去除原文件的备注宏
+		if content.Body.Storage.Value != "" {
+			content.Body.Storage.Value = strings.Split(content.Body.Storage.Value, ConfluenceNoteSplite)[0]
+		}
 		oldValue, err := cli.ContentBodyConvertTo(content.Body.Storage.Value, "storage", "view")
 		if err != nil {
 			return Content{}, fmt.Errorf("转换旧内容失败: %s", err)
@@ -199,10 +205,10 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiD
 
 		if newValue == oldValue && lastAncestorId == parentId {
 			return content, nil
+		} else {
+			// 如果确定要更新confluence页面，那么这里添加一个备注宏
+			data += fmt.Sprintf(ConfluenceNoteMacro, extraInfo)
 		}
-
-		// 如果确定要更新confluence页面，那么这里添加一个备注宏
-		data += fmt.Sprintf(ConfluenceNoteMacro, extraInfo)
 
 		// 存在则否则更新
 		content.Space.Key = space

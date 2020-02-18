@@ -2,6 +2,10 @@ package confluence
 
 //Confluence的备注宏，用于备注git的信息
 const ConfluenceNoteMacro = `
+<br />
+<br />
+<br />
+<hr />
 <ac:structured-macro ac:name="note">
   <ac:parameter ac:name="icon">true</ac:parameter>
   <ac:parameter ac:name="title">Git提交信息</ac:parameter>
@@ -9,4 +13,11 @@ const ConfluenceNoteMacro = `
     <p>%s</p>
   </ac:rich-text-body>
 </ac:structured-macro>
+`
+
+var ConfluenceNoteSplite = `
+<br />
+<br />
+<br />
+<hr />
 `
