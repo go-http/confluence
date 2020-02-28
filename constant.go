@@ -8,7 +8,7 @@ const ConfluenceNoteMacro = `
 <hr />
 <ac:structured-macro ac:name="note">
   <ac:parameter ac:name="icon">true</ac:parameter>
-  <ac:parameter ac:name="title">Git提交信息</ac:parameter>
+  <ac:parameter ac:name="title">修改历史</ac:parameter>
   <ac:rich-text-body>
     <p>%s</p>
   </ac:rich-text-body>
