@@ -24,10 +24,11 @@ const NewConfluenceNoteMacro = `
   <ac:parameter ac:name="icon">true</ac:parameter>
   <ac:parameter ac:name="title">修改历史</ac:parameter>
   <ac:rich-text-body>
-    {{ range .CommitList }}
-		<p>{{ . }}</p>
+    {{range .CommitList}}
+		<p>{{.}}</p>
+	{{end}}
   <br />
-  <p><ac:structured-macro ac:name="html"><ac:plain-text-body><![CDATA[渲染自<a href="{{ .GitUrl }}}">{{ .GitUrl }}</a>仓库的<a href="{{ .FileUrl }}}">{{ .FileName }}</a>文件]]></ac:plain-text-body></ac:structured-macro></p>
+  <p><ac:structured-macro ac:name="html"><ac:plain-text-body><![CDATA[渲染自<a href="{{.GitUrl}}}">{{.GitUrl}}</a>仓库的<a href="{{.FileUrl}}}">{{.FileName}}</a>文件]]></ac:plain-text-body></ac:structured-macro></p>
   </ac:rich-text-body>
 </ac:structured-macro>
 `
