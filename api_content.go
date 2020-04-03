@@ -160,7 +160,70 @@ func (cli *Client) ContentUpdate(content Content) (Content, error) {
 }
 
 //从指定空间查找或创建指定标题的内容
-func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiDirPrefix, data, extraInfo string) (Content, error) {
+func (cli *Client) DrawFile(space, parentId, title, wikiDirPrefix, data string) (Content, error) {
+	//内容中的空行会被Confluence保存时自动去掉
+	//因此前先去掉，以避免对比内容变化时受到影响
+	data = strings.TrimSuffix(strings.TrimPrefix(data, "\n"), "\n")
+
+	//获取当前页面的内容
+	content, err := cli.ContentBySpaceAndTitle(space, title)
+	if err != nil {
+		return Content{}, fmt.Errorf("查找%s出错: %s", title, err)
+	}
+
+	// 不存在则创建
+	if content.Id == "" {
+		return cli.PageCreateInSpace(space, parentId, title, data)
+	}
+
+	// 获取文件的路径
+	pagePath := ""
+	lastAncestorId := ""
+	for _, ancestor := range content.Ancestors {
+		pagePath += "/" + ancestor.Title
+		lastAncestorId = ancestor.Id
+	}
+	pagePath += "/" + content.Title
+
+	//存在，但不在指定的路径下，报错结束
+	if !strings.HasPrefix(pagePath, wikiDirPrefix) {
+		return Content{}, fmt.Errorf("一个标题为 '%v' 的页面已经存在于该空间中。为您的页面输入一个不同的标题。", title)
+	} else {
+		//存在：对比内容是否有变化
+		newValue, err := cli.ContentBodyConvertTo(data, "storage", "view")
+		if err != nil {
+			return Content{}, fmt.Errorf("转换新内容失败: %s", err)
+		}
+
+		// 去除原文件的备注宏
+		if content.Body.Storage.Value != "" {
+			content.Body.Storage.Value = strings.Split(content.Body.Storage.Value, ConfluenceNoteSplite)[0]
+		}
+		oldValue, err := cli.ContentBodyConvertTo(content.Body.Storage.Value, "storage", "view")
+		if err != nil {
+			return Content{}, fmt.Errorf("转换旧内容失败: %s", err)
+		}
+
+		if newValue == oldValue && lastAncestorId == parentId {
+			return content, nil
+		}
+
+		// 存在则否则更新
+		content.Space.Key = space
+		content.Version.Number += 1
+		content.Version.Message = time.Now().Local().Format("机器人更新于2006-01-02 15:04:05")
+		content.SetStorageBody(data)
+
+		//设置父页面
+		if parentId != "" {
+			content.Ancestors = []Content{Content{Id: parentId}}
+		}
+
+		return cli.ContentUpdate(content)
+	}
+}
+
+func (cli *Client) DrawFileWithNoteMacro(space, parentId, title, wikiDirPrefix, data, extraInfo string) (Content, error) {
 	//内容中的空行会被Confluence保存时自动去掉
 	//因此前先去掉，以避免对比内容变化时受到影响
 	data = strings.TrimSuffix(strings.TrimPrefix(data, "\n"), "\n")
@@ -245,7 +308,7 @@ type DrawModifyPageOption struct {
 }
 
 //从指定空间查找或创建指定标题的内容
-func (cli *Client) DrawModifyOrCreatePage(options *DrawModifyPageOption) (Content, error) {
+func (cli *Client) DrawFileWithNewNoteMacro(options *DrawModifyPageOption) (Content, error) {
 	//内容中的空行会被Confluence保存时自动去掉
 	//因此前先去掉，以避免对比内容变化时受到影响
 	data := strings.TrimSuffix(strings.TrimPrefix(options.Data, "\n"), "\n")
@@ -328,6 +391,5 @@ func GetConfluenceNoteMacro(options *DrawModifyPageOption) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("Macro ", outPut.String())
 	return outPut.String(), nil
 }
