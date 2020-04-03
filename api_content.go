@@ -290,7 +290,7 @@ func (cli *Client) DrawModifyOrCreatePage(options *DrawModifyPageOption) (Conten
 			oldValue = strings.Split(oldValue, ConfluenceNoteSplite)[0]
 		}
 
-		if newValue == oldValue && lastAncestorId == options.Title {
+		if newValue == oldValue && lastAncestorId == options.ParentId {
 			return content, nil
 		} else {
 			// 如果确定要更新confluence页面，那么这里添加一个备注宏
