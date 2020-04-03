@@ -291,8 +291,9 @@ func (cli *Client) DrawFileWithNoteMacro(space, parentId, title, wikiDirPrefix, 
 }
 
 type Commit struct {
-	CommitInfo string
+	CommitId   string
 	Href       string
+	CommitInfo string
 }
 
 type DrawModifyPageOption struct {
