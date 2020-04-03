@@ -25,7 +25,7 @@ const NewConfluenceNoteMacro = `
   <ac:parameter ac:name="title">修改历史</ac:parameter>
   <ac:rich-text-body>
     {{range .CommitList}}
-		<p>{{.CommitInfo}} {{.Href}}</p>
+		<p>{{.CommitInfo}} <a href="{{.Href}}">详情</a></p>
 	{{end}}
   <br />
   <p>渲染自<a href="{{.GitUrl}}">{{.GitUrl}}</a>仓库的<a href="{{.FileUrl}}">{{.FileName}}</a>文件</p>
