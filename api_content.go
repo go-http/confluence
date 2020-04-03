@@ -280,13 +280,14 @@ func (cli *Client) DrawModifyOrCreatePage(options *DrawModifyPageOption) (Conten
 			return Content{}, fmt.Errorf("转换新内容失败: %s", err)
 		}
 
-		// 去除原文件的备注宏
-		if content.Body.Storage.Value != "" {
-			content.Body.Storage.Value = strings.Split(content.Body.Storage.Value, ConfluenceNoteSplite)[0]
-		}
 		oldValue, err := cli.ContentBodyConvertTo(content.Body.Storage.Value, "storage", "view")
 		if err != nil {
 			return Content{}, fmt.Errorf("转换旧内容失败: %s", err)
+		}
+
+		// 去除原文件的备注宏
+		if len(strings.Split(oldValue, ConfluenceNoteSplite)) > 1 {
+			oldValue = strings.Split(oldValue, ConfluenceNoteSplite)[0]
 		}
 
 		if newValue == oldValue && lastAncestorId == options.Title {
