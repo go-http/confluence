@@ -227,13 +227,18 @@ func (cli *Client) PageFindOrCreateBySpaceAndTitle(space, parentId, title, wikiD
 	}
 }
 
+type Commit struct {
+	CommitInfo string
+	Href       string
+}
+
 type DrawModifyPageOption struct {
 	Space               string   // 空间
 	Title               string   // 标题
 	ParentId            string   // 父亲节点
 	ConfluenceDirPrefix string   // 在confluence上的目录前缀
 	Data                string   // 文件内容
-	CommitList          []string // 最近提交信息
+	CommitList          []Commit // 最近提交信息
 	GitUrl              string   // 仓库地址
 	FileUrl             string   // 文件地址
 	FileName            string   // 文件名称
