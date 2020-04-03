@@ -37,5 +37,4 @@ var ConfluenceNoteSplite = `
 <br />
 <br />
 <br />
-<hr />
-`
+<hr />`
