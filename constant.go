@@ -26,7 +26,7 @@ const NewConfluenceNoteMacro = `
   <ac:rich-text-body>
 	<p>
     {{range .CommitList}}
-		{{.CommitInfo}} <a href="{{.Href}}">详情</a>
+		{{.CommitInfo}} <a href="{{.Href}}">详情</a><br />
 	{{end}}
 	</p>
   <br />
