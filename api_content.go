@@ -303,6 +303,7 @@ type DrawModifyPageOption struct {
 	ConfluenceDirPrefix string   // 在confluence上的目录前缀
 	Data                string   // 文件内容
 	CommitList          []Commit // 最近提交信息
+	GitName             string   // 仓库名称
 	GitUrl              string   // 仓库地址
 	FileUrl             string   // 文件地址
 	FileName            string   // 文件名称

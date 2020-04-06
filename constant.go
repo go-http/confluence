@@ -30,7 +30,7 @@ const NewConfluenceNoteMacro = `
 	{{end}}
 	</p>
   <br />
-  <p>渲染自<a href="{{.GitUrl}}">{{.GitUrl}}</a>仓库的<a href="{{.FileUrl}}">{{.FileName}}</a>文件</p>
+  <p>渲染自<a href="{{.GitUrl}}">{{.GitName}}</a>仓库的<a href="{{.FileUrl}}">{{.FileName}}</a>文件</p>
   </ac:rich-text-body>
 </ac:structured-macro>
 `
