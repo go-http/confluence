@@ -114,7 +114,7 @@ func (cli *Client) ApiPOSTFiles(path string, files []string) (*http.Response, er
 	w.Close()
 
 	header := url.Values{
-		"X-Atlassian-Token": {"nocheck"},
+		"X-Atlassian-Token": {"no-check"},
 		"Content-Type":      {w.FormDataContentType()},
 	}
 

@@ -108,7 +108,14 @@ func (cli *Client) ContentCreateInSpace(contentType, space, parentId, title, dat
 
 	//设置父页面
 	if parentId != "" {
-		content.Ancestors = []Content{Content{Id: parentId}}
+		content.Ancestors = []Content{
+			{
+				Id: parentId,
+				Space: Space{
+					Key: content.Space.Key,
+				},
+			},
+		}
 	}
 
 	resp, err := cli.ApiPOST("/content", content)
@@ -216,7 +223,14 @@ func (cli *Client) DrawFile(space, parentId, title, wikiDirPrefix, data string) 
 
 		//设置父页面
 		if parentId != "" {
-			content.Ancestors = []Content{Content{Id: parentId}}
+			content.Ancestors = []Content{
+				{
+					Id: parentId,
+					Space: Space{
+						Key: content.Space.Key,
+					},
+				},
+			}
 		}
 
 		return cli.ContentUpdate(content)
@@ -283,7 +297,14 @@ func (cli *Client) DrawFileWithNoteMacro(space, parentId, title, wikiDirPrefix, 
 
 		//设置父页面
 		if parentId != "" {
-			content.Ancestors = []Content{Content{Id: parentId}}
+			content.Ancestors = []Content{
+				{
+					Id: parentId,
+					Space: Space{
+						Key: content.Space.Key,
+					},
+				},
+			}
 		}
 
 		return cli.ContentUpdate(content)
@@ -379,7 +400,14 @@ func (cli *Client) DrawFileWithNewNoteMacro(options *DrawModifyPageOption) (Cont
 
 		//设置父页面
 		if options.ParentId != "" {
-			content.Ancestors = []Content{{Id: options.ParentId}}
+			content.Ancestors = []Content{
+				{
+					Id: options.ParentId,
+					Space: Space{
+						Key: content.Space.Key,
+					},
+				},
+			}
 		}
 
 		return cli.ContentUpdate(content)
