@@ -1,12 +1,12 @@
 # Confluence SDK
-[![GoDoc](https://godoc.org/github.com/athurg/go-confluence?status.svg)](https://godoc.org/github.com/athurg/go-confluence)
-[![Build Status](https://travis-ci.com/athurg/go-confluence.svg?branch=master)](https://travis-ci.com/athurg/go-confluence)
+[![GoDoc](https://godoc.org/github.com/go-http/confluence?status.svg)](https://godoc.org/github.com/go-http/confluence)
+[![Build Status](https://travis-ci.com/go-http/confluence.svg?branch=master)](https://travis-ci.com/go-http/confluence)
 
 ## Usage
 
 ```golang
 import (
-	"github.com/athurg/go-confluence"
+	"github.com/go-http/confluence"
 )
 ```
 

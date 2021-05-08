@@ -8,7 +8,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/athurg/go-confluence"
+	"github.com/go-http/confluence"
 )
 
 func main() {
